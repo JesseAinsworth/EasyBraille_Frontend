@@ -1,0 +1,18 @@
+version: 1
+frontend:
+  phases:
+    # Run npm commands at the repository root (package.json is at project root)
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    # Amplify should pick up the Next.js build output at the repository root
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**
