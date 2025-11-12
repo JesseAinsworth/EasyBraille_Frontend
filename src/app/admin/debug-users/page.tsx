@@ -30,17 +30,20 @@ export default function DebugUsersPage() {
   const [isCreatingUser, setIsCreatingUser] = useState(false)
   const { toast } = useToast()
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+
+  // Obtener lista de usuarios y estadísticas
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/debug/users")
+      const response = await fetch(`${API_URL}/api/debug/users`)
       const data = await response.json()
 
       if (data.success) {
         setUsers(data.users)
         setStats(data.stats)
       } else {
-        throw new Error(data.error)
+        throw new Error(data.error || "Error desconocido")
       }
     } catch (error: any) {
       toast({
@@ -53,6 +56,7 @@ export default function DebugUsersPage() {
     }
   }
 
+  // Probar contraseña
   const testPasswordFunc = async () => {
     if (!testEmail || !testPassword) {
       toast({
@@ -65,7 +69,7 @@ export default function DebugUsersPage() {
 
     setIsTestingPassword(true)
     try {
-      const response = await fetch("/api/debug/users", {
+      const response = await fetch(`${API_URL}/api/debug/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -86,11 +90,7 @@ export default function DebugUsersPage() {
           variant: data.passwordValid ? "default" : "destructive",
         })
       } else {
-        toast({
-          title: "Error",
-          description: data.message,
-          variant: "destructive",
-        })
+        throw new Error(data.message)
       }
     } catch (error: any) {
       toast({
@@ -103,6 +103,7 @@ export default function DebugUsersPage() {
     }
   }
 
+  // Crear usuario de prueba
   const createTestUser = async () => {
     if (!newUserEmail || !newUserPassword) {
       toast({
@@ -115,7 +116,7 @@ export default function DebugUsersPage() {
 
     setIsCreatingUser(true)
     try {
-      const response = await fetch("/api/debug/users", {
+      const response = await fetch(`${API_URL}/api/debug/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -127,8 +128,6 @@ export default function DebugUsersPage() {
 
       const data = await response.json()
 
-
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
       if (data.success) {
         toast({
           title: "Usuario creado",
@@ -136,16 +135,12 @@ export default function DebugUsersPage() {
         })
         setNewUserEmail("")
         setNewUserPassword("")
-        fetchUsers() // Recargar la lista
+        fetchUsers()
       } else {
-        toast({
-          title: "Error",
-          description: data.message,
-          variant: "destructive",
-        })
+        throw new Error(data.message)
       }
     } catch (error: any) {
-              const response = await fetch(`${API_URL}/api/debug/users`)
+      toast({
         title: "Error",
         description: `Error al crear usuario: ${error.message}`,
         variant: "destructive",
@@ -171,33 +166,26 @@ export default function DebugUsersPage() {
             Herramientas para diagnosticar y corregir problemas con usuarios de la base de datos
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-6">
           {/* Estadísticas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold">{stats.total || 0}</div>
-              const response = await fetch(`${API_URL}/api/debug/users`, {
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold">{stats.admins || 0}</div>
-                <div className="text-sm text-muted-foreground">Admins</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold">{stats.users || 0}</div>
-                <div className="text-sm text-muted-foreground">Usuarios</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold">{stats.active || 0}</div>
-                <div className="text-sm text-muted-foreground">Activos</div>
-              </CardContent>
-            </Card>
+            {["total", "admins", "users", "active"].map((key) => (
+              <Card key={key}>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold">{stats[key] || 0}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {key === "total"
+                      ? "Total"
+                      : key === "admins"
+                      ? "Admins"
+                      : key === "users"
+                      ? "Usuarios"
+                      : "Activos"}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Lista de usuarios */}
@@ -227,7 +215,7 @@ export default function DebugUsersPage() {
                             user.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
                           }`}
                         >
-              const response = await fetch(`${API_URL}/api/debug/users`, {
+                          {user.role}
                         </span>
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
@@ -290,27 +278,25 @@ export default function DebugUsersPage() {
                 <Plus className="h-5 w-5" />
                 Crear usuario de prueba
               </CardTitle>
-              <CardDescription>Crea un nuevo usuario en la base de datos con contraseña hasheada</CardDescription>
+              <CardDescription>Crea un nuevo usuario con contraseña hasheada</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="newUserEmail">Email del nuevo usuario</Label>
+                  <Label>Email</Label>
                   <Input
-                    id="newUserEmail"
                     type="email"
                     placeholder="admin@midominio.com"
                     value={newUserEmail}
                     onChange={(e) => setNewUserEmail(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Si contiene "admin" será administrador, sino será usuario normal
+                    Si contiene “admin”, será administrador
                   </p>
                 </div>
                 <div>
-                  <Label htmlFor="newUserPassword">Contraseña</Label>
+                  <Label>Contraseña</Label>
                   <Input
-                    id="newUserPassword"
                     type="password"
                     placeholder="contraseña123"
                     value={newUserPassword}
@@ -322,47 +308,6 @@ export default function DebugUsersPage() {
                 <Plus className="mr-2 h-4 w-4" />
                 {isCreatingUser ? "Creando..." : "Crear usuario"}
               </Button>
-            </CardContent>
-          </Card>
-
-          {/* Usuarios sugeridos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Usuarios sugeridos para crear</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <div className="font-medium">admin@midominio.com</div>
-                    <div className="text-sm text-muted-foreground">Administrador con contraseña: admin123</div>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setNewUserEmail("admin@midominio.com")
-                      setNewUserPassword("admin123")
-                    }}
-                  >
-                    Usar
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <div className="font-medium">usuario@midominio.com</div>
-                    <div className="text-sm text-muted-foreground">Usuario normal con contraseña: user123</div>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setNewUserEmail("usuario@midominio.com")
-                      setNewUserPassword("user123")
-                    }}
-                  >
-                    Usar
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </CardContent>
