@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Settings, Shield, LogOut } from "lucide-react"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+
 export function UserNav() {
   const [user, setUser] = useState<{ name: string; email: string; role: string; avatarUrl?: string } | null>(null)
   const router = useRouter()
@@ -30,7 +32,7 @@ export function UserNav() {
   const handleLogout = async () => {
     try {
       // Call logout API to clear server-side session
-      await fetch("/api/auth/logout", {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       })

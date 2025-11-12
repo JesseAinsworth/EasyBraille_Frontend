@@ -12,6 +12,8 @@ import { BrailleKeyboard } from "@/components/BrailleKeyboard"
 import { useRouter } from "next/navigation"
 import { generateTranslationPDF } from "@/lib/generatorPdf"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+
 export default function TranslatorPage() {
   const [inputText, setInputText] = useState("")
   const [outputText, setOutputText] = useState("")
@@ -178,7 +180,7 @@ export default function TranslatorPage() {
   const saveTranslationToDatabase = async (originalText: string, translatedText: string) => {
     setIsSaving(true)
     try {
-      const response = await fetch("/api/translations", {
+      const response = await fetch(`${API_URL}/api/translations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

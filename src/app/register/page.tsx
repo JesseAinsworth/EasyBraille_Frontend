@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast"
 import { LogoSection } from "@/components/LogoSection"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+
 export default function RegisterPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -36,7 +38,7 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

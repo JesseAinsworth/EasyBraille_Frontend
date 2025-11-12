@@ -66,7 +66,8 @@ export default function HistoryPage() {
 
   const fetchTranslations = async () => {
     try {
-      const response = await fetch("/api/translations")
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+  const response = await fetch(`${API_URL}/api/translations`)
       if (!response.ok) {
         throw new Error("Error al cargar traducciones")
       }

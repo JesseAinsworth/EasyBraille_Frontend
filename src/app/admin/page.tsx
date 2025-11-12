@@ -141,7 +141,9 @@ export default function AdminPage() {
       console.log(`
 🔄 Cargando datos de: ${url}
 ;`)
-      const response = await fetch(url, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+      const fullUrl = url.startsWith("/api/") ? `${API_URL}${url}` : url
+      const response = await fetch(fullUrl, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -181,7 +183,7 @@ export default function AdminPage() {
   // Función memoizada para cargar usuarios
   const loadUsers = useCallback(async () => {
     console.log("👥 Cargando usuarios...")
-    const result = await loadDataSafely("/api/admin/users")
+  const result = await loadDataSafely("/api/admin/users")
     if (result.success && result.data.users && !result.isMockData) {
       setUsers(result.data.users)
       console.log(`✅ ${result.data.users.length} usuarios cargados`)
@@ -197,7 +199,7 @@ export default function AdminPage() {
   const loadStats = useCallback(async () => {
     console.log("📈 Cargando estadísticas...")
     // Usar la API unificada de stats
-    const statsResult = await loadDataSafely("/api/admin/stats")
+  const statsResult = await loadDataSafely("/api/admin/stats")
     if (statsResult.success && statsResult.data?.stats && !statsResult.isMockData) {
       const statsData = statsResult.data.stats
       console.log("📊 Datos de estadísticas recibidos:", statsData)
@@ -368,7 +370,8 @@ export default function AdminPage() {
         password: "password123",
         role: "user",
       }
-      const response = await fetch("/api/admin/users/manage", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+      const response = await fetch(`${API_URL}/api/admin/users/manage`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -409,7 +412,8 @@ export default function AdminPage() {
   const handleDeleteUser = async (id: string) => {
     try {
       setIsLoadingData(true)
-      const response = await fetch(`/api/admin/users/manage?id=${id}`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+      const response = await fetch(`${API_URL}/api/admin/users/manage?id=${id}`, {
         method: "DELETE",
       })
       const result = await response.json()
@@ -443,7 +447,8 @@ export default function AdminPage() {
   const handleSaveUser = async (id: string) => {
     try {
       setIsLoadingData(true)
-      const response = await fetch("/api/admin/users/manage", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+      const response = await fetch(`${API_URL}/api/admin/users/manage`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

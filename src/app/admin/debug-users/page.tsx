@@ -127,6 +127,8 @@ export default function DebugUsersPage() {
 
       const data = await response.json()
 
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
       if (data.success) {
         toast({
           title: "Usuario creado",
@@ -143,7 +145,7 @@ export default function DebugUsersPage() {
         })
       }
     } catch (error: any) {
-      toast({
+              const response = await fetch(`${API_URL}/api/debug/users`)
         title: "Error",
         description: `Error al crear usuario: ${error.message}`,
         variant: "destructive",
@@ -175,7 +177,7 @@ export default function DebugUsersPage() {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold">{stats.total || 0}</div>
-                <div className="text-sm text-muted-foreground">Total</div>
+              const response = await fetch(`${API_URL}/api/debug/users`, {
               </CardContent>
             </Card>
             <Card>
@@ -225,7 +227,7 @@ export default function DebugUsersPage() {
                             user.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {user.role}
+              const response = await fetch(`${API_URL}/api/debug/users`, {
                         </span>
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${

@@ -62,6 +62,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message, code: "invalid_data" }, { status: 400 })
     }
 
+    // Si la conexión a MongoDB falló por falta de configuración, devolver un error 503
+    if (error.message && error.message.includes("MONGODB_URI no está definida")) {
+      return NextResponse.json(
+        { error: "MONGODB_URI no está configurada en el servidor. Configure la variable de entorno MONGODB_URI." },
+        { status: 503 },
+      )
+    }
     return NextResponse.json({ error: "Error al registrar usuario" }, { status: 500 })
   }
 }
