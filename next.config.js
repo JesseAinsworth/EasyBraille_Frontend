@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://easybraille-backend.onrender.com'
+// Default backend URL - can be overridden with NEXT_PUBLIC_API_URL env var
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://easybraille-backend.onrender.com'
 
 const nextConfig = {
   // Production optimizations

@@ -4,7 +4,8 @@ import { ObjectId } from "mongodb"
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
+// Default JWT secret - MUST be overridden in production with JWT_SECRET env var
+const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET || "easybraille-jwt-fallback-key-2024"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -26,7 +27,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "nextauth-secret",
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "easybraille-nextauth-fallback-2024",
 }
 
 export function createToken(user: any): string {

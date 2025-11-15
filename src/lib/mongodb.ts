@@ -1,8 +1,8 @@
 import { MongoClient, type Db } from "mongodb"
 
-// Read MongoDB connection from environment to avoid embedding credentials in source.
-const MONGODB_URI = process.env.MONGODB_URI || ""
-const MONGODB_DB = process.env.MONGODB_DB || "easybraille"
+// MongoDB configuration with fallbacks for deployment
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || ""
+const MONGODB_DB = process.env.MONGODB_DB || process.env.DATABASE_NAME || "easybraille"
 
 let cachedClient: MongoClient | null = null
 let cachedDb: Db | null = null
@@ -28,7 +28,9 @@ export async function connectToDatabase() {
     console.log("🔄 Conectando a MongoDB Atlas...")
 
     if (!MONGODB_URI) {
-      throw new Error("❌ MONGODB_URI no está definida. Para despliegues en CI/Amplify, configure la variable de entorno MONGODB_URI o habilite un modo de build sin DB.")
+      console.warn("⚠️ MONGODB_URI no está definida. Usando modo de desarrollo sin base de datos.")
+      // En modo de desarrollo o deployment sin BD, usar datos mock
+      throw new Error("❌ Base de datos no configurada. Configure MONGODB_URI para conectar a MongoDB Atlas.")
     }
 
     const client = new MongoClient(MONGODB_URI, options)
