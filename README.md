@@ -1,62 +1,72 @@
-# EasyBraille Frontend
+# 🎯 EasyBraille Frontend
 
-A modern React-based web application for braille education and translation, built with Next.js 14, TypeScript, and Tailwind CSS.
+> **Estado**: ✅ **Listo para Producción** - Configurado para despliegue con backend en Railway
 
-## Features
+Una aplicación web moderna basada en React para educación y traducción braille, construida con Next.js 14, TypeScript y Tailwind CSS.
 
-- **Braille Translation**: Convert text to braille and vice versa
-- **Interactive Braille Keyboard**: Learn braille through hands-on interaction
-- **User Authentication**: Secure login and registration system
-- **Translation History**: Save and manage your translations
-- **Admin Dashboard**: User management and statistics
-- **Responsive Design**: Optimized for all device sizes
-- **Accessibility First**: Built with screen reader compatibility
+## 🌟 Características
 
-## Technology Stack
+- **Traducción Braille**: Convierte texto a braille y viceversa
+- **Teclado Braille Interactivo**: Aprende braille de forma práctica
+- **Autenticación de Usuarios**: Sistema seguro de login y registro
+- **Historial de Traducciones**: Guarda y gestiona tus traducciones
+- **Panel de Administración**: Gestión de usuarios y estadísticas
+- **Diseño Responsivo**: Optimizado para todos los tamaños de dispositivo
+- **Accesibilidad Primero**: Compatible con lectores de pantalla
+
+## 🛠️ Stack Tecnológico
 
 - **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS with custom components
-- **UI Components**: Radix UI primitives
-- **Authentication**: NextAuth.js with JWT tokens
-- **Database**: MongoDB with Mongoose ODM
-- **Charts**: Chart.js and Recharts for analytics
-- **Icons**: Lucide React
-- **Date Handling**: date-fns library
+- **Estilos**: Tailwind CSS con componentes personalizados
+- **Componentes UI**: Primitivos de Radix UI
+- **Autenticación**: NextAuth.js con tokens JWT
+- **Base de Datos**: MongoDB con Mongoose ODM
+- **Gráficos**: Chart.js y Recharts para analytics
+- **Iconos**: Lucide React
+- **Backend**: Railway Production (`https://easybraillebackend-production.up.railway.app`)
 
-## Getting Started
+## 🚀 Configuración para Producción
 
-### Prerequisites
+### ⚠️ Importante: Estado del Backend
+El backend está configurado para usar Railway, pero actualmente parece estar inactivo. Verifica el estado en: `https://easybraillebackend-production.up.railway.app`
 
-- Node.js 18+ and npm
-- MongoDB database (local or Atlas)
+### 🔧 Variables de Entorno
 
-### Installation
+1. **Copia el archivo de ejemplo**:
+```bash
+cp .env.example .env.local
+```
 
-1. Clone the repository:
+2. **Configura las variables requeridas**:
+```env
+NEXT_PUBLIC_API_URL=https://easybraillebackend-production.up.railway.app
+NEXTAUTH_URL=http://localhost:3000  # Cambia por tu dominio en producción
+NEXTAUTH_SECRET=tu-secreto-nextauth-super-seguro
+JWT_SECRET=tu-secreto-jwt-super-seguro
+MONGODB_URI=tu-conexion-mongodb
+```
+
+### 🏃‍♂️ Inicio Rápido
+
+1. **Clona el repositorio**:
 ```bash
 git clone https://github.com/JesseAinsworth/EasyBraille_Frontend.git
 cd EasyBraille_Frontend
 ```
 
-2. Install dependencies:
+2. **Instala dependencias**:
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
-Create a `.env.local` file with:
-```env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-NEXTAUTH_SECRET=your_nextauth_secret
-```
+3. **Configura variables de entorno** (ver arriba)
 
-4. Run the development server:
+4. **Ejecuta el servidor de desarrollo**:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Abre [http://localhost:3000](http://localhost:3000) para ver la aplicación.
 
 ## Available Scripts
 

@@ -2,15 +2,42 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://easybraillebackend-production.up.railway.app'
 
 const nextConfig = {
-  // Disable cache to save disk space
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = false
-    }
-    return config
+  // Production optimizations
+  experimental: {
+    optimizeCss: true,
   },
+  
+  // Image optimization
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+  },
+  
+  // Security headers for production
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ]
+  },
+  
+  // API rewrites to backend
   async rewrites() {
-    // Use NEXT_PUBLIC_API_URL at build/runtime to point /api calls to backend service
     return [
       {
         source: '/api/:path*',
@@ -18,6 +45,12 @@ const nextConfig = {
       },
     ]
   },
+  
+  // Compression for production
+  compress: true,
+  
+  // Disable source maps in production
+  productionBrowserSourceMaps: false,
 }
 
 module.exports = nextConfig
