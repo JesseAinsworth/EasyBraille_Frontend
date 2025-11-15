@@ -110,9 +110,11 @@ export default function LoginPage() {
       const userToStore = {
         ...data.user,
         role: data.user.role || "user",      // Agregar role si no existe
-        isActive: data.user.isActive !== undefined ? data.user.isActive : true  // Agregar isActive si no existe
+        isActive: data.user.isActive !== undefined ? data.user.isActive : true,  // Agregar isActive si no existe
+        userId: data.user.userId || data.user._id || data.user.email.replace('@', '_').replace(/\./g, '_')  // ✅ WORKAROUND: usar email como ID si no hay userId
       }
       
+      console.log("🔧 Debug - userToStore after processing:", userToStore)
       localStorage.setItem("user", JSON.stringify(userToStore))
 
       // Guardar el token si está disponible
