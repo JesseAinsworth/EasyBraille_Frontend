@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL! // ✅ siempre usa la URL de Railway
 
 export async function POST(request: NextRequest) {
   let requestBodyText: string
   let requestBodyJson: any
 
   try {
-    // Leer el cuerpo de la solicitud
     requestBodyText = await request.text()
     requestBodyJson = JSON.parse(requestBodyText)
     console.log(`📋 Request body:`, requestBodyText.substring(0, 200))
@@ -30,9 +29,7 @@ export async function POST(request: NextRequest) {
 
     return new NextResponse(data, {
       status: response.status,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     })
   } catch (error: any) {
     console.error("❌ Login proxy error:", error)
@@ -42,13 +39,9 @@ export async function POST(request: NextRequest) {
       console.log("🔧 Backend not available, providing mock response")
 
       const { email, password } = requestBodyJson || {}
-
       if (!email || !password) {
         return NextResponse.json(
-          {
-            error: "ValidationError",
-            message: "Email y contraseña son requeridos",
-          },
+          { error: "ValidationError", message: "Email y contraseña son requeridos" },
           { status: 400 }
         )
       }
@@ -61,14 +54,6 @@ export async function POST(request: NextRequest) {
             name: "Usuario de Desarrollo",
             email,
             role: "user",
-            language: "es",
-            theme: "light",
-            learningLevel: "beginner",
-            totalTranslations: 5,
-            totalKeyboardPractice: 3,
-            streakDays: 2,
-            isEmailVerified: true,
-            lastLoginAt: new Date().toISOString(),
           },
           token: "dev-access-token", // ✅ token simulado
         },
@@ -77,11 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      {
-        error: "Error en el proxy de login",
-        details: error.message,
-        type: error.name,
-      },
+      { error: "Error en el proxy de login", details: error.message, type: error.name },
       { status: 500 }
     )
   }
