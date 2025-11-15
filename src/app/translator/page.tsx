@@ -182,16 +182,31 @@ export default function TranslatorPage() {
     try {
       // Get userId from localStorage
       const storedUser = localStorage.getItem("user")
+      console.log("🔍 Debug - storedUser:", storedUser)
+      
       if (!storedUser) {
         throw new Error("Usuario no autenticado")
       }
       
       const userData = JSON.parse(storedUser)
+      console.log("🔍 Debug - userData:", userData)
+      
       const userId = userData.userId
+      console.log("🔍 Debug - userId:", userId)
       
       if (!userId) {
         throw new Error("ID de usuario no encontrado")
       }
+
+      const requestBody = {
+        userId: userId,
+        originalText: originalText.trim(),
+        brailleText: translatedText.trim(),
+        translationType: translationDirection === "tobraille" ? "TEXT_TO_BRAILLE" : "BRAILLE_TO_TEXT",
+        language: "es",
+      }
+      
+      console.log("🔍 Debug - Request body:", requestBody)
 
       const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
       const response = await fetch(`${BACKEND_URL}/api/translations`, {
@@ -200,13 +215,7 @@ export default function TranslatorPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          userId: userId,  // ✅ AGREGADO: userId requerido por el backend
-          originalText: originalText.trim(),
-          brailleText: translatedText.trim(),
-          translationType: translationDirection === "tobraille" ? "TEXT_TO_BRAILLE" : "BRAILLE_TO_TEXT",
-          language: "es",
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
