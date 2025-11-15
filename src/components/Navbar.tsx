@@ -23,6 +23,7 @@ export default function Navbar() {
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          {/* Logo */}
           <div className="flex items-center">
             <LogoSection
               size="small"
@@ -32,6 +33,7 @@ export default function Navbar() {
             />
           </div>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/translator" className="text-gray-600 hover:text-gray-900 transition-colors">
               Traductor
@@ -54,6 +56,7 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
             {user && <UserNav />}
             <button
@@ -66,24 +69,46 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Navigation Menu */}
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <Link href="/translator" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md" onClick={closeMenu}>
+            <Link
+              href="/translator"
+              className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+              onClick={closeMenu}
+            >
               Traductor
             </Link>
-            <Link href="/history" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md" onClick={closeMenu}>
+            <Link
+              href="/history"
+              className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+              onClick={closeMenu}
+            >
               Historial
             </Link>
+
             {!user && (
               <>
-                <Link href="/login" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md" onClick={closeMenu}>
+                <Link
+                  href="/login"
+                  className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                  onClick={closeMenu}
+                >
                   Iniciar Sesión
                 </Link>
-                <Link href="/register" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md" onClick={closeMenu}>
+                <Link
+                  href="/register"
+                  className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                  onClick={closeMenu}
+                >
                   Registrarse
                 </Link>
               </>
             )}
           </div>
-        </div
+        </div>
+      )}
+    </nav>
+  )
+}
