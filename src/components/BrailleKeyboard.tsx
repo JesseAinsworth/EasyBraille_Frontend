@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Keyboard, Info } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
 const API_URL =
@@ -184,6 +185,7 @@ export function BrailleKeyboard({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Última tecla detectada */}
           <div className="bg-muted p-3 rounded-md min-h-[60px] flex items-center justify-center">
             {lastKey ? (
               <div className="text-4xl font-mono">{lastKey}</div>
@@ -195,6 +197,7 @@ export function BrailleKeyboard({
             )}
           </div>
 
+          {/* Últimas teclas */}
           {detectedKeys.length > 0 && (
             <div>
               <p className="text-sm font-medium mb-2">
@@ -210,12 +213,22 @@ export function BrailleKeyboard({
             </div>
           )}
 
+          {/* Texto informativo */}
           <div className="text-sm text-muted-foreground">
             <p className="flex items-center gap-1">
               <Info className="h-4 w-4" />
-              Tu teclado Braille envía letras individuales que son detectadas
-              automáticamente.
+              Tu teclado Braille envía letras individuales que son detectadas automáticamente.
             </p>
+          </div>
+
+          {/* ✅ Botón de redirección */}
+          <div className="pt-4">
+            <Button
+              variant="default"
+              onClick={() => (window.location.href = "https://www.easy-braille.com/")}
+            >
+              Ir a EasyBraille.com
+            </Button>
           </div>
         </div>
       </CardContent>
