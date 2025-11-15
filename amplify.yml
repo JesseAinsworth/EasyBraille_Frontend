@@ -8,10 +8,13 @@ frontend:
     build:
       commands:
         - echo "Building Next.js application..."
-        - echo "Using default backend URL for production"
+        - echo "Setting up environment variables..."
         - export NEXT_PUBLIC_API_URL="https://easybraille-backend.onrender.com"
-        - export NEXTAUTH_URL="$AWS_APP_ID.amplifyapp.com"
+        - export NEXTAUTH_URL="https://$AWS_APP_ID.amplifyapp.com"
+        - export NODE_ENV="production"
+        - echo "Building with Next.js..."
         - npm run build
+        - echo "Build completed successfully"
   artifacts:
     baseDirectory: .next
     files:
@@ -20,3 +23,10 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+  customHeaders:
+    - pattern: '/api/**'
+      headers:
+        - key: 'Cache-Control'
+          value: 'no-cache, no-store, must-revalidate'
+        - key: 'Content-Type'
+          value: 'application/json'

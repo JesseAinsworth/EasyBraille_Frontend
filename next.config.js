@@ -3,10 +3,8 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://easybraille-backend.onrender.com'
 
 const nextConfig = {
-  // Production optimizations disabled for deployment compatibility
-  // experimental: {
-  //   optimizeCss: true,
-  // },
+  // Vercel deployment optimizations
+  poweredByHeader: false,
   
   // Image optimization
   images: {
@@ -37,15 +35,15 @@ const nextConfig = {
     ]
   },
   
-  // API rewrites to backend
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${API_URL}/api/:path*`,
-      },
-    ]
-  },
+  // API rewrites disabled for static hosting compatibility
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: `${API_URL}/api/:path*`,
+  //     },
+  //   ]
+  // },
   
   // Compression for production
   compress: true,
