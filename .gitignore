@@ -47,6 +47,15 @@ coverage/
 *.swo
 *~
 
+# Additional sensitive files
+*.private
+*.secret
+*.pem
+*.p12
+*.pfx
+.aws/
+.ssh/
+
 # OS generated files
 .DS_Store
 .DS_Store?
