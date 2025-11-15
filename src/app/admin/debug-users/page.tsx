@@ -30,13 +30,13 @@ export default function DebugUsersPage() {
   const [isCreatingUser, setIsCreatingUser] = useState(false)
   const { toast } = useToast()
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
   // Obtener lista de usuarios y estadísticas
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${API_URL}/api/debug/users`)
+      const response = await fetch(`/api/debug/users`)
       const data = await response.json()
 
       if (data.success) {
@@ -69,7 +69,7 @@ export default function DebugUsersPage() {
 
     setIsTestingPassword(true)
     try {
-      const response = await fetch(`${API_URL}/api/debug/users`, {
+      const response = await fetch(`/api/debug/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -116,7 +116,7 @@ export default function DebugUsersPage() {
 
     setIsCreatingUser(true)
     try {
-      const response = await fetch(`${API_URL}/api/debug/users`, {
+      const response = await fetch(`/api/debug/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

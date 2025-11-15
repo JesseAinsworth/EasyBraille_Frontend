@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Keyboard, Info } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
 interface BrailleKeyboardProps {
   onTextInput: (text: string) => void
@@ -76,7 +76,7 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
       const token = localStorage.getItem("token")
       if (!token) return // No registrar si no hay token
 
-      await fetch(`${API_URL}/api/keyboard-actions`, {
+      await fetch(`/api/keyboard-actions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

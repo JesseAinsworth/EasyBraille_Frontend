@@ -141,7 +141,7 @@ export default function AdminPage() {
       console.log(`
 🔄 Cargando datos de: ${url}
 ;`)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
       const fullUrl = url.startsWith("/api/") ? `${API_URL}${url}` : url
       const response = await fetch(fullUrl, {
         credentials: "include",
@@ -370,8 +370,8 @@ export default function AdminPage() {
         password: "password123",
         role: "user",
       }
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
-      const response = await fetch(`${API_URL}/api/admin/users/manage`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`/api/admin/users/manage`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -412,8 +412,8 @@ export default function AdminPage() {
   const handleDeleteUser = async (id: string) => {
     try {
       setIsLoadingData(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
-      const response = await fetch(`${API_URL}/api/admin/users/manage?id=${id}`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`/api/admin/users/manage?id=${id}`, {
         method: "DELETE",
       })
       const result = await response.json()
@@ -447,8 +447,8 @@ export default function AdminPage() {
   const handleSaveUser = async (id: string) => {
     try {
       setIsLoadingData(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
-      const response = await fetch(`${API_URL}/api/admin/users/manage`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`/api/admin/users/manage`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

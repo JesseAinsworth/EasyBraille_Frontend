@@ -23,7 +23,7 @@ interface UserType {
 export default function SettingsPage() {
   const [user, setUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState<string>("/placeholder.svg?height=128&width=128")
+  const [avatarUrl, setAvatarUrl] = useState<string>("/placeholder.svg")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { toast } = useToast()
@@ -171,7 +171,7 @@ export default function SettingsPage() {
   }
 
   const handleRemoveAvatar = () => {
-    const defaultAvatar = "/placeholder.svg?height=128&width=128"
+    const defaultAvatar = "/placeholder.svg"
     setAvatarUrl(defaultAvatar)
 
     if (user) {

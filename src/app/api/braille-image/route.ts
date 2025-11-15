@@ -13,7 +13,9 @@ export async function POST(request: NextRequest) {
     const body = new FormData()
     body.append("image", imageFile, imageFile.name)
 
-    const flaskResponse = await fetch("http://localhost:5000/api/translate", {
+    // For braille image detection, we use the Railway backend specifically
+    const railwayBackendUrl = process.env.NEXT_PUBLIC_RAILWAY_BACKEND_URL || "https://easybraillebackend-production.up.railway.app"
+    const flaskResponse = await fetch(`${railwayBackendUrl}`, {
       method: "POST",
       body, // Sin headers manuales
     })

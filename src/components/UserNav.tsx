@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Settings, Shield, LogOut } from "lucide-react"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
 export function UserNav() {
   const [user, setUser] = useState<{ name: string; email: string; role: string; avatarUrl?: string } | null>(null)
@@ -32,7 +32,7 @@ export function UserNav() {
   const handleLogout = async () => {
     try {
       // Call logout API to clear server-side session
-      await fetch(`${API_URL}/api/auth/logout`, {
+      await fetch(`/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       })
@@ -54,8 +54,10 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatarUrl || "/placeholder.svg?height=32&width=32"} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={user.avatarUrl || "/placeholder.svg"} alt={user.name} />
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {user.name.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

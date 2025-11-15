@@ -23,7 +23,7 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
   const [isCameraActive, setIsCameraActive] = useState(false)
   const { toast } = useToast()
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraille-backend.onrender.com"
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
   // --- Cámara ---
   const startCamera = async () => {
@@ -83,7 +83,7 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       const formData = new FormData()
       formData.append("image", file)
 
-      const response = await fetch(`${API_URL}/api/braille-image`, { method: "POST", body: formData })
+      const response = await fetch(`/api/braille-image`, { method: "POST", body: formData })
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const data = await response.json()
       if (data.error) throw new Error(data.error)
@@ -109,7 +109,7 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       const formData = new FormData()
       formData.append("image", file)
 
-      const apiResponse = await fetch(`${API_URL}/api/braille-image`, { method: "POST", body: formData })
+      const apiResponse = await fetch(`/api/braille-image`, { method: "POST", body: formData })
       if (!apiResponse.ok) throw new Error(`HTTP error! status: ${apiResponse.status}`)
       const data = await apiResponse.json()
       if (data.error) throw new Error(data.error)

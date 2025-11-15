@@ -1,47 +1,87 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createUser } from "@/services/userService"
+import { NextRequest, NextResponse } from "next/server"
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
 
 export async function POST(request: NextRequest) {
+  let requestBodyText: string;
+  let requestBodyJson: any;
+  
   try {
-    const body = await request.json()
-    const { name, email, password } = body
+    // Read body once and store it
+    requestBodyText = await request.text()
+    requestBodyJson = JSON.parse(requestBodyText)
+    console.log(`📋 Request body:`, requestBodyText.substring(0, 200))
+    
+    const backendUrl = `${BACKEND_URL}/api/auth/register`
+    console.log(`🔄 Proxying POST /api/auth/register → ${backendUrl}`)
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: "Nombre, email y contraseña son requeridos" }, { status: 400 })
-    }
-
-    // Crear usuario en la base de datos
-    const user = await createUser({
-      name,
-      email,
-      password,
-      role: "user", // Por defecto, todos los usuarios nuevos son "user"
+    const response = await fetch(backendUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: requestBodyText,
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     })
 
-    return NextResponse.json(
-      {
-        success: true,
-        user: {
-          id: user._id!.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        },
+    const data = await response.text()
+    console.log(`📋 Backend response status: ${response.status}`)
+    console.log(`📋 Backend response:`, data.substring(0, 200))
+    
+    return new NextResponse(data, {
+      status: response.status,
+      headers: {
+        "Content-Type": "application/json",
       },
-      { status: 201 },
+    })
+  } catch (error) {
+    console.error("❌ Register proxy error:", error)
+    
+    // If backend is not available, provide mock response for development
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.log('🔧 Backend not available, providing mock response')
+      
+      const { name, email, password } = requestBodyJson || {}
+      
+      if (!name || !email || !password) {
+        return NextResponse.json({
+          error: 'ValidationError',
+          message: 'Nombre, email y contraseña son requeridos'
+        }, { status: 400 })
+      }
+      
+      return NextResponse.json({
+        message: 'Usuario registrado exitosamente (modo desarrollo)',
+        user: {
+          id: 'dev-user-id',
+          name,
+          email,
+          role: 'user',
+          language: 'es',
+          theme: 'light',
+          learningLevel: 'beginner',
+          totalTranslations: 0,
+          totalKeyboardPractice: 0,
+          streakDays: 0,
+          isEmailVerified: false,
+          lastLoginAt: null
+        },
+        tokens: {
+          accessToken: 'dev-access-token',
+          refreshToken: 'dev-refresh-token',
+          expiresIn: '15m'
+        }
+      }, { status: 201 })
+    }
+    
+    return NextResponse.json(
+      { 
+        error: "Error en el proxy de registro", 
+        details: error.message,
+        type: error.name 
+      }, 
+      { status: 500 }
     )
-  } catch (error: any) {
-    console.error("Error en registro:", error)
-
-    // Manejar errores específicos
-    if (error.message.includes("El usuario ya existe")) {
-      return NextResponse.json({ error: "El usuario ya existe" }, { status: 400 })
-    }
-
-    if (error.message.includes("Datos inválidos")) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json({ error: "Error al registrar usuario" }, { status: 500 })
   }
 }
