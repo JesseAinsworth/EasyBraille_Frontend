@@ -29,13 +29,21 @@ export default function LoginPage() {
     try {
       // Realizar la solicitud de inicio de sesión a la API
       const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      
+      // Add timeout and better error handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       // Verificar si la respuesta es HTML (error) en lugar de JSON
       const contentType = response.headers.get("content-type")
@@ -54,6 +62,16 @@ export default function LoginPage() {
       }
 
       if (!response.ok) {
+        // Manejo específico para errores del servidor
+        if (response.status === 500) {
+          toast({
+            title: "Error del servidor",
+            description: "El servidor está experimentando problemas. Por favor, intenta más tarde.",
+            variant: "destructive",
+          })
+          return
+        }
+        
         // Mostrar mensajes específicos basados en el código devuelto por el backend
         if (data.code === "invalid_credentials") {
           toast({
@@ -124,9 +142,18 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       console.error("Error de inicio de sesión:", error)
+      
+      let errorMessage = "Credenciales incorrectas. Por favor, intenta de nuevo."
+      
+      if (error.name === 'AbortError') {
+        errorMessage = "La solicitud tardó demasiado. El servidor puede estar experimentando problemas. Intenta más tarde."
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Error de inicio de sesión",
-        description: error.message || "Credenciales incorrectas. Por favor, intenta de nuevo.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {

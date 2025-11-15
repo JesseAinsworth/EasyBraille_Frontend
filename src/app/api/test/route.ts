@@ -6,6 +6,16 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`🧪 Testing connection to: ${BACKEND_URL}`)
     
+    // Temporarily disabled during build due to backend timeout issues
+    return NextResponse.json({
+      message: "Backend connection test disabled during build",
+      backendUrl: BACKEND_URL,
+      status: "DISABLED_FOR_BUILD",
+      note: "Backend experiencing 500 errors and timeouts",
+      success: false
+    })
+    
+    /* 
     const response = await fetch(`${BACKEND_URL}/health`, {
       method: "GET",
       headers: {
@@ -22,6 +32,7 @@ export async function GET(request: NextRequest) {
       response: data.substring(0, 500),
       success: response.ok
     })
+    */
   } catch (error: any) {
     console.error("❌ Connection test error:", error)
     return NextResponse.json({

@@ -39,13 +39,21 @@ export default function RegisterPage() {
 
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      
+      // Add timeout and better error handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
       const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, email, password }),
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       // Verificar si la respuesta es HTML (error) en lugar de JSON
       const contentType = response.headers.get("content-type")
@@ -64,6 +72,16 @@ export default function RegisterPage() {
       }
 
       if (!response.ok) {
+        // Manejo específico para errores del servidor
+        if (response.status === 500) {
+          toast({
+            title: "Error del servidor",
+            description: "El servidor está experimentando problemas. Por favor, intenta más tarde.",
+            variant: "destructive",
+          })
+          return
+        }
+        
         // Manejar códigos específicos del backend
         if (data.code === "already_registered") {
           toast({
@@ -101,9 +119,17 @@ export default function RegisterPage() {
       // Si el backend estableció cookie de sesión, redirigimos directamente
       router.push("/translator")
     } catch (error: any) {
+      let errorMessage = "Ocurrió un error durante el registro. Por favor, intenta de nuevo."
+      
+      if (error.name === 'AbortError') {
+        errorMessage = "La solicitud tardó demasiado. El servidor puede estar experimentando problemas. Intenta más tarde."
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Ocurrió un error durante el registro. Por favor, intenta de nuevo.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {

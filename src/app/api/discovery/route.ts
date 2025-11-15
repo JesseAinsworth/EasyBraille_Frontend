@@ -6,6 +6,21 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`🧪 Testing backend endpoints...`)
     
+    // Temporarily disabled during build due to backend timeout issues
+    return NextResponse.json({
+      message: "Backend discovery disabled during build",
+      backend_url: BACKEND_URL,
+      status: "DISABLED_FOR_BUILD",
+      reason: "Backend experiencing 500 errors and timeouts",
+      endpoints_to_test: [
+        '/api/auth/register',
+        '/api/auth/login', 
+        '/api/translations',
+        '/api/braille-image'
+      ]
+    })
+    
+    /* 
     // Test different possible endpoints
     const testEndpoints = [
       '/api/auth/register',
@@ -55,5 +70,11 @@ export async function GET(request: NextRequest) {
       error: "Error testing backend endpoints",
       details: error.message
     }, { status: 500 })
+    */
+  } catch (error: any) {
+    return NextResponse.json({
+      message: "Discovery disabled during build",
+      error: "Backend timeout issues"
+    }, { status: 503 })
   }
 }
