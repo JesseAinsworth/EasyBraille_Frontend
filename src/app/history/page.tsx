@@ -66,15 +66,34 @@ export default function HistoryPage() {
 
   const fetchTranslations = async () => {
     try {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
-  const response = await fetch(`${BACKEND_URL}/api/translations`)
+      // Get userId from localStorage
+      const storedUser = localStorage.getItem("user")
+      if (!storedUser) {
+        throw new Error("Usuario no autenticado")
+      }
+      
+      const userData = JSON.parse(storedUser)
+      const userId = userData.userId
+      
+      if (!userId) {
+        throw new Error("ID de usuario no encontrado")
+      }
+
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`${BACKEND_URL}/api/translations/history?userId=${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      })
+      
       if (!response.ok) {
         throw new Error("Error al cargar traducciones")
       }
 
       const data = await response.json()
-      setTranslations(data.translations || [])
+      setTranslations(data.history || [])
     } catch (error) {
       console.error("Error fetching translations:", error)
       toast({

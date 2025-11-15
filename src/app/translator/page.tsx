@@ -180,6 +180,19 @@ export default function TranslatorPage() {
   const saveTranslationToDatabase = async (originalText: string, translatedText: string) => {
     setIsSaving(true)
     try {
+      // Get userId from localStorage
+      const storedUser = localStorage.getItem("user")
+      if (!storedUser) {
+        throw new Error("Usuario no autenticado")
+      }
+      
+      const userData = JSON.parse(storedUser)
+      const userId = userData.userId
+      
+      if (!userId) {
+        throw new Error("ID de usuario no encontrado")
+      }
+
       const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
       const response = await fetch(`${BACKEND_URL}/api/translations`, {
         method: "POST",
@@ -188,6 +201,7 @@ export default function TranslatorPage() {
         },
         credentials: "include",
         body: JSON.stringify({
+          userId: userId,  // ✅ AGREGADO: userId requerido por el backend
           originalText: originalText.trim(),
           brailleText: translatedText.trim(),
           translationType: translationDirection === "tobraille" ? "TEXT_TO_BRAILLE" : "BRAILLE_TO_TEXT",
