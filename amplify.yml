@@ -8,11 +8,6 @@ frontend:
     build:
       commands:
         - echo "Building Next.js application..."
-        - echo "Setting up environment variables..."
-                - export NEXT_PUBLIC_API_URL="https://easybraillebackend-production.up.railway.app"
-        - export NEXTAUTH_URL="https://$AWS_APP_ID.amplifyapp.com"
-        - export NODE_ENV="production"
-        - echo "Building with Next.js..."
         - npm run build
         - echo "Build completed successfully"
   artifacts:
