@@ -19,9 +19,9 @@ frontend:
       - node_modules/**/*
       - .next/cache/**/*
   customHeaders:
-    - pattern: '/api/**'
+    - pattern: /api/**
       headers:
-        - key: 'Cache-Control'
-          value: 'no-cache, no-store, must-revalidate'
-        - key: 'Content-Type'
-          value: 'application/json'
+        - key: Cache-Control
+          value: no-cache, no-store, must-revalidate
+        - key: Content-Type
+          value: application/json
