@@ -28,13 +28,22 @@ export default function LoginPage() {
 
     try {
       // Realizar la solicitud de inicio de sesión a la API
-      const response = await fetch(`/api/auth/login`, {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       })
+
+      // Verificar si la respuesta es HTML (error) en lugar de JSON
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text()
+        console.error("Backend returned HTML instead of JSON:", errorText.substring(0, 200))
+        throw new Error("Error de conexión con el servidor. Por favor, intenta más tarde.")
+      }
 
       const data = await response.json()
 

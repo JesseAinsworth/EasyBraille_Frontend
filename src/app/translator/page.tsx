@@ -180,7 +180,8 @@ export default function TranslatorPage() {
   const saveTranslationToDatabase = async (originalText: string, translatedText: string) => {
     setIsSaving(true)
     try {
-      const response = await fetch(`/api/translations`, {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`${BACKEND_URL}/api/translations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

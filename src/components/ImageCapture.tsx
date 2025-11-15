@@ -83,7 +83,8 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       const formData = new FormData()
       formData.append("image", file)
 
-      const response = await fetch(`/api/braille-image`, { method: "POST", body: formData })
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`${BACKEND_URL}/api/braille-image`, { method: "POST", body: formData })
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const data = await response.json()
       if (data.error) throw new Error(data.error)
@@ -109,7 +110,8 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       const formData = new FormData()
       formData.append("image", file)
 
-      const apiResponse = await fetch(`/api/braille-image`, { method: "POST", body: formData })
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const apiResponse = await fetch(`${BACKEND_URL}/api/braille-image`, { method: "POST", body: formData })
       if (!apiResponse.ok) throw new Error(`HTTP error! status: ${apiResponse.status}`)
       const data = await apiResponse.json()
       if (data.error) throw new Error(data.error)

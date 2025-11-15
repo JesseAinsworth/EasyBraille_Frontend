@@ -67,7 +67,8 @@ export default function HistoryPage() {
   const fetchTranslations = async () => {
     try {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
-  const response = await fetch(`/api/translations`)
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+  const response = await fetch(`${BACKEND_URL}/api/translations`)
       if (!response.ok) {
         throw new Error("Error al cargar traducciones")
       }
@@ -88,7 +89,8 @@ export default function HistoryPage() {
 
   const deleteTranslation = async (id: string) => {
     try {
-      const response = await fetch(`/api/translations?id=${id}`, {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      const response = await fetch(`${BACKEND_URL}/api/translations?id=${id}`, {
         method: "DELETE",
       })
 

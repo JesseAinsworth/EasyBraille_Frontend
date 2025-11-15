@@ -32,7 +32,8 @@ export function UserNav() {
   const handleLogout = async () => {
     try {
       // Call logout API to clear server-side session
-      await fetch(`/api/auth/logout`, {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       })

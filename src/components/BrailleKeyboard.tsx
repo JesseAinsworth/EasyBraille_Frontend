@@ -76,7 +76,8 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
       const token = localStorage.getItem("token")
       if (!token) return // No registrar si no hay token
 
-      await fetch(`/api/keyboard-actions`, {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+      await fetch(`${BACKEND_URL}/api/keyboard-actions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

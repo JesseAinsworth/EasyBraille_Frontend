@@ -5,7 +5,7 @@ export async function translateBrailleImage(file: File) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app";
 
   // Use the official backend endpoint for image translation
-  const res = await fetch(`/api/braille-image`, {
+  const res = await fetch(`${API_URL}/api/braille-image`, {
     method: "POST",
     body: formData,
   });
