@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
       backendUrl: BACKEND_URL,
       results
     })
+    */
   } catch (error: any) {
     console.error("❌ Discovery error:", error)
     return NextResponse.json({
