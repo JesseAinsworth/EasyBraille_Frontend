@@ -13,13 +13,13 @@ frontend:
   artifacts:
     baseDirectory: .next
     files:
-      - '**/*'
+        - '**/*'
   cache:
     paths:
-      - node_modules/**/*
-      - .next/cache/**/*
+        - node_modules/**/*
+        - .next/cache/**/*
   customHeaders:
-    - pattern: '/api/**'
+        - pattern: '/api/**'
       headers:
         - key: 'Cache-Control'
           value: 'no-cache, no-store, must-revalidate'
