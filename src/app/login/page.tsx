@@ -47,6 +47,12 @@ export default function LoginPage() {
 
       const data = await response.json()
 
+      // Validar estructura de respuesta
+      if (!data || typeof data !== 'object') {
+        console.error("Invalid response structure:", data)
+        throw new Error("Respuesta inválida del servidor.")
+      }
+
       if (!response.ok) {
         // Mostrar mensajes específicos basados en el código devuelto por el backend
         if (data.code === "invalid_credentials") {
@@ -89,11 +95,17 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token)
       }
 
+      // Verificar que la respuesta tenga la estructura esperada
+      if (!data.user) {
+        console.error("Missing user data in response:", data)
+        throw new Error("Respuesta del servidor incompleta.")
+      }
+
       console.log("✅ Login exitoso:", data.user)
 
       toast({
         title: data.message || "Inicio de sesión exitoso",
-        description: `Bienvenido, ${data.user.name || data.user.email.split("@")[0]}`,
+        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`,
       })
 
       // Verificar si hay una URL de redirección en los parámetros de consulta

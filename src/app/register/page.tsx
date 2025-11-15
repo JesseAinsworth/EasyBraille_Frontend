@@ -57,6 +57,12 @@ export default function RegisterPage() {
 
       const data = await response.json()
 
+      // Validar estructura de respuesta
+      if (!data || typeof data !== 'object') {
+        console.error("Invalid response structure:", data)
+        throw new Error("Respuesta inválida del servidor.")
+      }
+
       if (!response.ok) {
         // Manejar códigos específicos del backend
         if (data.code === "already_registered") {
@@ -80,10 +86,16 @@ export default function RegisterPage() {
         throw new Error(data.error || "Error al registrar usuario")
       }
 
+      // Verificar que la respuesta tenga la estructura esperada
+      if (!data.user) {
+        console.error("Missing user data in response:", data)
+        throw new Error("Respuesta del servidor incompleta.")
+      }
+
       // Registro exitoso: el backend devuelve token y cookie
       toast({
         title: data.message || "Registro exitoso",
-        description: `Bienvenido, ${data.user.name}`,
+        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
       // Si el backend estableció cookie de sesión, redirigimos directamente
