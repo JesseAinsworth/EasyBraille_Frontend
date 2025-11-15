@@ -67,14 +67,8 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("❌ Discovery error:", error)
     return NextResponse.json({
-      error: "Error testing backend endpoints",
+      error: "Discovery disabled during build - Backend timeout issues",
       details: error.message
-    }, { status: 500 })
-    */
-  } catch (error: any) {
-    return NextResponse.json({
-      message: "Discovery disabled during build",
-      error: "Backend timeout issues"
     }, { status: 503 })
   }
 }
