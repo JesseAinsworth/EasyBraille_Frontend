@@ -23,7 +23,6 @@ export function UserNav() {
 
   const handleLogout = async () => {
     try {
-      // ✅ Llamar al backend para cerrar sesión (si aplica cookies/servidor)
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
@@ -31,7 +30,6 @@ export function UserNav() {
     } catch (error) {
       console.error("Error during logout:", error)
     } finally {
-      // ✅ Limpiar datos en cliente
       logout()
       router.push("/login")
     }
@@ -44,37 +42,27 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={user?.avatarUrl || "/placeholder.svg"}
-              alt={user?.name || "Usuario"}
-            />
+            <AvatarImage src={user?.avatarUrl || "/placeholder.svg"} alt={user?.name || "Usuario"} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {user?.name?.charAt(0)?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {user?.name || "Usuario"}
-            </p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
+            <p className="text-sm font-medium leading-none">{user?.name || "Usuario"}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-
         <DropdownMenuItem asChild>
           <Link href="/app/settings" className="flex items-center">
             <Settings className="mr-2 h-4 w-4" />
             <span>Configuración</span>
           </Link>
         </DropdownMenuItem>
-
         {user.role === "admin" && (
           <DropdownMenuItem asChild>
             <Link href="/admin" className="flex items-center">
@@ -83,13 +71,8 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
         )}
-
         <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          onClick={handleLogout}
-          className="flex items-center text-red-600 focus:text-red-600"
-        >
+        <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-600 focus:text-red-600">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Cerrar Sesión</span>
         </DropdownMenuItem>
