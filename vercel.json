@@ -18,7 +18,7 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://easybraille-backend.onrender.com",
+    "NEXT_PUBLIC_API_URL": "https://easybraillebackend-production.up.railway.app",
     "NODE_ENV": "production"
   }
 }

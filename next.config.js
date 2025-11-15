@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
-// Default backend URL - can be overridden with NEXT_PUBLIC_API_URL env var
-const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://easybraille-backend.onrender.com'
+// Default backend URL - Railway primary, can be overridden with NEXT_PUBLIC_API_URL env var
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://easybraillebackend-production.up.railway.app'
 
 const nextConfig = {
   // Vercel deployment optimizations

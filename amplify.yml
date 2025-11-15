@@ -9,7 +9,7 @@ frontend:
       commands:
         - echo "Building Next.js application..."
         - echo "Setting up environment variables..."
-        - export NEXT_PUBLIC_API_URL="https://easybraille-backend.onrender.com"
+                - export NEXT_PUBLIC_API_URL="https://easybraillebackend-production.up.railway.app"
         - export NEXTAUTH_URL="https://$AWS_APP_ID.amplifyapp.com"
         - export NODE_ENV="production"
         - echo "Building with Next.js..."
