@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
           preview: text.substring(0, 100),
           isHtml: text.startsWith('<!doctype') || text.startsWith('<html')
         })
-      } catch (error) {
+      } catch (error: any) {
         results.push({
           endpoint,
           status: 'ERROR',
-          error: error.message
+          error: error?.message || 'Unknown error'
         })
       }
     }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       backendUrl: BACKEND_URL,
       results
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Discovery error:", error)
     return NextResponse.json({
       error: "Error testing backend endpoints",

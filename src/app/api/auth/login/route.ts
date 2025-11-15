@@ -34,11 +34,11 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Login proxy error:", error)
     
     // If backend is not available, provide mock response for development
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    if (error?.name === 'TypeError' && error?.message?.includes('fetch')) {
       console.log('🔧 Backend not available, providing mock response')
       
       const { email, password } = requestBodyJson || {}

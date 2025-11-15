@@ -44,7 +44,7 @@ async function proxyRequest(request: NextRequest, method: string) {
         "Content-Type": response.headers.get("Content-Type") || "application/json",
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Proxy error:", error)
     return NextResponse.json(
       { error: "Error en el proxy al backend" }, 

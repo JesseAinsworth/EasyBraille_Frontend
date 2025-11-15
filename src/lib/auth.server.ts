@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken"
+import { SignJWT, jwtVerify } from 'jose'
 import { getUsersCollection } from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import type { NextAuthOptions } from "next-auth"
@@ -6,6 +6,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 
 // Default JWT secret - MUST be overridden in production with JWT_SECRET env var
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET || "easybraille-jwt-fallback-key-2024"
+const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET)
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -30,19 +31,24 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "easybraille-nextauth-fallback-2024",
 }
 
-export function createToken(user: any): string {
+export async function createToken(user: any): Promise<string> {
   const payload = {
     userId: user._id?.toString() || user._id,
     email: user.email,
     name: user.name,
     role: user.role || "user",
   }
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" })
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .setIssuedAt()
+    .sign(JWT_SECRET_KEY)
 }
 
-export function verifyToken(token: string): any {
+export async function verifyToken(token: string): Promise<any> {
   try {
-    return jwt.verify(token, JWT_SECRET)
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY)
+    return payload
   } catch (error) {
     return null
   }
@@ -58,7 +64,7 @@ export async function getUserFromToken(tokenOrRequest: any) {
 
     if (!token) return null
 
-    const decoded: any = jwt.verify(token, JWT_SECRET)
+    const decoded: any = await verifyToken(token)
 
     if (decoded && decoded.userId) {
       const users = await getUsersCollection()

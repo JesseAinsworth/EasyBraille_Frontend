@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verify } from "jsonwebtoken"
+import { jwtVerify } from "jose"
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
+const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET)
 
 // Rutas públicas que no requieren autenticación
 const publicRoutes = ["/", "/login", "/register", "/reset-password", "/translator", "/braille-keyboard"]
@@ -29,10 +30,11 @@ export async function middleware(request: NextRequest) {
 
   try {
     // Verificar y decodificar el token
-    const decoded = verify(token, JWT_SECRET)
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY)
+    const decoded = payload as any
 
     // Verificar acceso a rutas de administrador
-    if (pathname.startsWith("/admin") && (decoded as any).role !== "admin") {
+    if (pathname.startsWith("/admin") && decoded.role !== "admin") {
       return NextResponse.redirect(new URL("/", request.url))
     }
 

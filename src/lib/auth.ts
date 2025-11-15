@@ -1,9 +1,10 @@
-import jwt from "jsonwebtoken"
+import { SignJWT, jwtVerify } from 'jose'
 import type { NextRequest } from "next/server"
 import { getUsersCollection } from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
+const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET)
 
 export interface AuthUser {
   _id: ObjectId | string
@@ -41,7 +42,8 @@ export async function getUserFromToken(request: NextRequest): Promise<AuthUser |
     console.log("🔍 Token encontrado, verificando...")
 
     // Verificar el token
-    const decoded = jwt.verify(token, JWT_SECRET) as any
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY)
+    const decoded = payload as any
     console.log("✅ Token verificado:", { email: decoded.email, role: decoded.role })
 
     // Si el token contiene información completa del usuario, devolverla
@@ -98,7 +100,7 @@ export async function getUserFromToken(request: NextRequest): Promise<AuthUser |
   }
 }
 
-export function createToken(user: any): string {
+export async function createToken(user: any): Promise<string> {
   const payload = {
     userId: user._id?.toString() || user._id,
     email: user.email,
@@ -108,12 +110,17 @@ export function createToken(user: any): string {
 
   console.log("🔐 Creando token para:", { email: payload.email, role: payload.role })
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" })
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .setIssuedAt()
+    .sign(JWT_SECRET_KEY)
 }
 
-export function verifyToken(token: string): any {
+export async function verifyToken(token: string): Promise<any> {
   try {
-    return jwt.verify(token, JWT_SECRET)
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY)
+    return payload
   } catch (error) {
     console.error("Token verification failed:", error)
     return null

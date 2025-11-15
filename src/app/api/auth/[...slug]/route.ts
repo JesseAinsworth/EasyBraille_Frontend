@@ -52,7 +52,7 @@ async function proxyRequest(request: NextRequest, method: string) {
         }),
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Proxy error:", error)
     return NextResponse.json(
       { error: "Error en el proxy al backend" }, 

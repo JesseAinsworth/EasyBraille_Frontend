@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       response: data.substring(0, 500),
       success: response.ok
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Connection test error:", error)
     return NextResponse.json({
       message: "Error de conexión al backend",

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const data = await flaskResponse.json()
     return NextResponse.json(data)
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al enviar imagen a Flask:", error)
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }

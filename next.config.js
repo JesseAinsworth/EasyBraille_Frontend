@@ -3,10 +3,10 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://easybraille-backend.onrender.com'
 
 const nextConfig = {
-  // Production optimizations
-  experimental: {
-    optimizeCss: true,
-  },
+  // Production optimizations disabled for deployment compatibility
+  // experimental: {
+  //   optimizeCss: true,
+  // },
   
   // Image optimization
   images: {

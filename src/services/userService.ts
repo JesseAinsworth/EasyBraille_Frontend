@@ -132,7 +132,7 @@ export async function authenticateUser(email: string, password: string) {
 
     console.log("✅ userService: Usuario autenticado:", email)
 
-    const token = createToken(user)
+    const token = await createToken(user)
     const { password: _, ...userWithoutPassword } = user
 
     return {
