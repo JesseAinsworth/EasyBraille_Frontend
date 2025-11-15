@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -14,20 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Settings, Shield, LogOut } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
 export function UserNav() {
-  const [user, setUser] = useState<{ name: string; email: string; role: string; avatarUrl?: string } | null>(null)
+  const { user, logout } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
 
   const handleLogout = async () => {
     try {
@@ -40,10 +32,8 @@ export function UserNav() {
     } catch (error) {
       console.error("Error during logout:", error)
     } finally {
-      // Clear client-side data
-      localStorage.removeItem("user")
-      localStorage.removeItem("token")
-      setUser(null)
+      // Clear client-side data using the hook
+      logout()
       router.push("/login")
     }
   }

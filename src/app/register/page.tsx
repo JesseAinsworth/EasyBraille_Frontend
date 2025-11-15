@@ -110,13 +110,26 @@ export default function RegisterPage() {
         throw new Error("Respuesta del servidor incompleta.")
       }
 
+      // Guardar información del usuario en localStorage
+      localStorage.setItem("user", JSON.stringify(data.user))
+
+      // Guardar el token si está disponible
+      if (data.token) {
+        localStorage.setItem("token", data.token)
+      }
+
+      // Trigger auth change event for immediate UI update
+      window.dispatchEvent(new Event("auth-change"))
+
+      console.log("✅ Registro exitoso:", data.user)
+
       // Registro exitoso: el backend devuelve token y cookie
       toast({
         title: data.message || "Registro exitoso",
         description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
-      // Si el backend estableció cookie de sesión, redirigimos directamente
+      // Redirigir al traductor
       router.push("/translator")
     } catch (error: any) {
       let errorMessage = "Ocurrió un error durante el registro. Por favor, intenta de nuevo."

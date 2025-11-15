@@ -113,6 +113,9 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token)
       }
 
+      // Trigger auth change event for immediate UI update
+      window.dispatchEvent(new Event("auth-change"))
+
       // Verificar que la respuesta tenga la estructura esperada
       if (!data.user) {
         console.error("Missing user data in response:", data)

@@ -1,36 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/UserNav"
 import { Menu, X } from "lucide-react"
 import { LogoSection } from "@/components/LogoSection"
-
-interface User {
-  name: string
-  email: string
-  role: string
-  avatarUrl?: string
-}
+import { useAuth } from "@/hooks/use-auth"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
+  const { user, isLoading } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (error) {
-        console.error("Error parsing user data:", error)
-      }
-    }
-  }, [])
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
