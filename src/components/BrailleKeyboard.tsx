@@ -1,12 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Keyboard, Info } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://easybraillebackend-production.up.railway.app"
 
 interface BrailleKeyboardProps {
   onTextInput: (text: string) => void
@@ -46,7 +54,13 @@ const keyToBrailleCode: Record<string, string> = {
   z: "101011",
 }
 
-export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage, onVoice }: BrailleKeyboardProps) {
+export function BrailleKeyboard({
+  onTextInput,
+  onBackspace,
+  onSpace,
+  onOpenPage,
+  onVoice,
+}: BrailleKeyboardProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [lastKey, setLastKey] = useState<string | null>(null)
   const [detectedKeys, setDetectedKeys] = useState<string[]>([])
@@ -59,7 +73,9 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
     if (storedDeviceId) {
       setDeviceId(storedDeviceId)
     } else {
-      const newDeviceId = `keyboard_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      const newDeviceId = `keyboard_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 9)}`
       localStorage.setItem("brailleKeyboardDeviceId", newDeviceId)
       setDeviceId(newDeviceId)
     }
@@ -72,12 +88,10 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
   ) => {
     try {
       const brailleCode = keyToBrailleCode[character] || "000000"
-
       const token = localStorage.getItem("token")
-      if (!token) return // No registrar si no hay token
+      if (!token) return
 
-      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
-      await fetch(`${BACKEND_URL}/api/keyboard-actions`, {
+      await fetch(`${API_URL}/api/keyboard-actions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,9 +110,7 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
   }
 
   useEffect(() => {
-    // Función para manejar eventos de teclado
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Detectar solo letras y caracteres imprimibles (sin necesidad de Ctrl+Alt)
       if (
         event.key.length === 1 &&
         /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s\.\,\!\?\:\;\-()'"/]/.test(event.key)
@@ -106,38 +118,24 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
         const key = event.key.toLowerCase()
         setLastKey(key)
 
-        // Añadir la tecla a la lista de teclas detectadas
         setDetectedKeys((prev) => {
           const newKeys = [...prev, key]
-          // Mantener solo las últimas 10 teclas
-          if (newKeys.length > 10) {
-            return newKeys.slice(newKeys.length - 10)
-          }
-          return newKeys
+          return newKeys.length > 10 ? newKeys.slice(-10) : newKeys
         })
 
-  // Enviar la tecla al componente padre
-  onTextInput(key)
-
-        // Registrar la acción del teclado
+        onTextInput(key)
         logKeyboardAction(key, "char")
-
-        // Marcar como conectado cuando se detecta una tecla
         setIsConnected(true)
       } else if (event.key === "Backspace") {
-        // Manejar la tecla de retroceso
         setLastKey("⌫")
-        // Preferir callback específico si está disponible
         if (onBackspace) {
           onBackspace()
         } else {
-          // Señalizar con un caracter especial si no hay callback
           onTextInput("\b")
         }
         logKeyboardAction("backspace", "backspace")
         setIsConnected(true)
       } else if (event.key === " ") {
-        // Manejar la tecla de espacio
         setLastKey("␣")
         if (onSpace) {
           onSpace()
@@ -147,32 +145,21 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
         logKeyboardAction(" ", "space")
         setIsConnected(true)
       } else if (event.key === "Enter") {
-        // Interpretar Enter como acción de voz/leer
         setLastKey("⏎")
         if (onVoice) onVoice()
         logKeyboardAction("enter", "voice")
         setIsConnected(true)
-      } else if (event.key === " ") {
-        // (handled above)
       }
     }
 
-    // Agregar el event listener
     window.addEventListener("keydown", handleKeyDown)
-
-    // Limpiar el event listener cuando el componente se desmonte
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
+    return () => window.removeEventListener("keydown", handleKeyDown)
   }, [onTextInput, onBackspace, onSpace, onOpenPage, onVoice, deviceId])
 
   // Simular desconexión después de 5 segundos sin actividad
   useEffect(() => {
     if (isConnected) {
-      const timer = setTimeout(() => {
-        setIsConnected(false)
-      }, 5000)
-
+      const timer = setTimeout(() => setIsConnected(false), 5000)
       return () => clearTimeout(timer)
     }
   }, [isConnected, lastKey])
@@ -186,9 +173,13 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
               <Keyboard className="h-5 w-5" />
               Teclado Braille
             </CardTitle>
-            <CardDescription>Conecta tu teclado Braille Arduino para escribir directamente</CardDescription>
+            <CardDescription>
+              Conecta tu teclado Braille Arduino para escribir directamente
+            </CardDescription>
           </div>
-          <Badge variant={isConnected ? "default" : "outline"}>{isConnected ? "Conectado" : "Desconectado"}</Badge>
+          <Badge variant={isConnected ? "default" : "outline"}>
+            {isConnected ? "Conectado" : "Desconectado"}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent>
@@ -206,7 +197,9 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
 
           {detectedKeys.length > 0 && (
             <div>
-              <p className="text-sm font-medium mb-2">Últimas teclas detectadas:</p>
+              <p className="text-sm font-medium mb-2">
+                Últimas teclas detectadas:
+              </p>
               <div className="flex flex-wrap gap-2">
                 {detectedKeys.map((key, index) => (
                   <Badge key={index} variant="secondary">
@@ -220,7 +213,8 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace, onOpenPage,
           <div className="text-sm text-muted-foreground">
             <p className="flex items-center gap-1">
               <Info className="h-4 w-4" />
-              Tu teclado Braille envía letras individuales que son detectadas automáticamente.
+              Tu teclado Braille envía letras individuales que son detectadas
+              automáticamente.
             </p>
           </div>
         </div>
