@@ -11,7 +11,8 @@ El backend **NO está actualmente desplegado** en ninguna plataforma. Ambas URLs
 
 ### 🔍 **Análisis del Repositorio Backend**
 
-Revisé el repositorio `https://github.com/JesseAinsworth/EasyBraille.Backend.git` y encontré:
+Revisé el repositorio **Backend Repository**: `https://github.com/JesseAinsworth/EasyBraille.Backend.git` 
+**Branch**: `main` ✅ y encontré:
 
 #### ✅ **Archivos Preparados para Despliegue**:
 - `Dockerfile` - Configuración Docker lista
