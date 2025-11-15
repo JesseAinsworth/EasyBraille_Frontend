@@ -10,17 +10,21 @@
 - ✅ **Variables de Entorno**: `.env.example` creado como template
 - ✅ **Gitignore**: Configurado para prevenir commits accidentales
 - ✅ **Next.js**: Optimizado para producción con headers de seguridad
-- ✅ **Backend**: Configurado para Railway (`https://easybraillebackend-production.up.railway.app`)
+- ✅ **Backend**: Configurado para Render (`https://easybraille-backend.onrender.com`)
 - ✅ **Documentación**: Guías completas de despliegue creadas
 
-### ⚠️ IMPORTANTE: Problema Actual
+### ⚠️ IMPORTANTE: Estado del Backend
 
-**El backend en Railway parece estar inactivo**. Error 404 en todas las rutas.
+**El backend NO está desplegado actualmente**. Ambas URLs están inactivas:
+- ❌ Railway: `https://easybraillebackend-production.up.railway.app` 
+- ❌ Render: `https://easybraille-backend.onrender.com`
 
-**Necesitas verificar**:
-1. Que el backend esté ejecutándose en Railway
-2. Que las rutas estén configuradas correctamente 
-3. Que CORS esté habilitado para tu frontend
+**Backend Repository**: `https://github.com/JesseAinsworth/EasyBraille.Backend.git`
+
+**Acción Requerida**:
+1. Desplegar backend en Render (recomendado) o Railway
+2. El repo del backend tiene toda la configuración lista
+3. Ver `BACKEND_STATUS.md` para instrucciones detalladas
 
 ### 🚀 Pasos para Desplegar
 

@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://easybraillebackend-production.up.railway.app'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://easybraille-backend.onrender.com'
 
 const nextConfig = {
   // Production optimizations
