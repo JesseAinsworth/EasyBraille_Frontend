@@ -1,8 +1,6 @@
 "use client"
 
-
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -27,25 +25,18 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // Realizar la solicitud de inicio de sesión a la API
-      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
-      
-      // Add timeout and better error handling
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
-      
-      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
         signal: controller.signal
       })
-      
+
       clearTimeout(timeoutId)
 
-      // Verificar si la respuesta es HTML (error) en lugar de JSON
       const contentType = response.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text()
@@ -55,97 +46,42 @@ export default function LoginPage() {
 
       const data = await response.json()
 
-      // Validar estructura de respuesta
-      if (!data || typeof data !== 'object') {
-        console.error("Invalid response structure:", data)
-        throw new Error("Respuesta inválida del servidor.")
-      }
-
       if (!response.ok) {
-        // Manejo específico para errores del servidor
-        if (response.status === 500) {
-          toast({
-            title: "Error del servidor",
-            description: "El servidor está experimentando problemas. Por favor, intenta más tarde.",
-            variant: "destructive",
-          })
-          return
-        }
-        
-        // Mostrar mensajes específicos basados en el código devuelto por el backend
-        if (data.code === "invalid_credentials") {
-          toast({
-            title: "Error de inicio de sesión",
-            description: "Contraseña incorrecta",
-            variant: "destructive",
-          })
-          return
-        }
-
-        if (data.code === "not_registered") {
-          toast({
-            title: "Usuario no registrado",
-            description: "No existe una cuenta con ese correo. Puedes registrarte.",
-            variant: "destructive",
-          })
-          // Opcional: redirigir a registro automáticamente
-          // router.push('/register')
-          return
-        }
-
-        if (data.code === "service_unavailable") {
-          toast({
-            title: "Servicio temporalmente indisponible",
-            description: "Intenta nuevamente más tarde.",
-            variant: "destructive",
-          })
-          return
-        }
-
         throw new Error(data.error || "Error al iniciar sesión")
       }
 
-      // Guardar información del usuario en localStorage
-      // Asegurar consistencia en los datos del usuario
+      if (!data.user) {
+        throw new Error("Respuesta del servidor incompleta.")
+      }
+
+      // ✅ Guardar userId correctamente
       const userToStore = {
         ...data.user,
-        role: data.user.role || "user",      // Agregar role si no existe
-        isActive: data.user.isActive !== undefined ? data.user.isActive : true,  // Agregar isActive si no existe
-        userId: data.user.userId || data.user._id || data.user.email.replace('@', '_').replace(/\./g, '_')  // ✅ WORKAROUND: usar email como ID si no hay userId
+        role: data.user.role || "user",
+        isActive: data.user.isActive !== undefined ? data.user.isActive : true,
+        userId: data.user.userId || data.user._id // confiar en lo que devuelve el backend
       }
-      
-      console.log("🔧 Debug - userToStore after processing:", userToStore)
+
+      console.log("🔧 Debug - userToStore:", userToStore)
       localStorage.setItem("user", JSON.stringify(userToStore))
 
-      // Guardar el token si está disponible
       if (data.token) {
         localStorage.setItem("token", data.token)
       }
 
-      // Trigger auth change event for immediate UI update
       window.dispatchEvent(new Event("auth-change"))
-
-      // Verificar que la respuesta tenga la estructura esperada
-      if (!data.user) {
-        console.error("Missing user data in response:", data)
-        throw new Error("Respuesta del servidor incompleta.")
-      }
-
-      console.log("✅ Login exitoso:", data.user)
 
       toast({
         title: data.message || "Inicio de sesión exitoso",
-        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`,
+        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
-      // Verificar si hay una URL de redirección en los parámetros de consulta
       const urlParams = new URLSearchParams(window.location.search)
       const redirectTo = urlParams.get("redirectTo")
 
       if (redirectTo) {
         router.push(redirectTo)
       } else {
-        // Redirigir según el rol del usuario
         if (data.user.role === "admin") {
           router.push("/admin")
         } else {
@@ -154,15 +90,14 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       console.error("Error de inicio de sesión:", error)
-      
       let errorMessage = "Credenciales incorrectas. Por favor, intenta de nuevo."
-      
-      if (error.name === 'AbortError') {
-        errorMessage = "La solicitud tardó demasiado. El servidor puede estar experimentando problemas. Intenta más tarde."
+
+      if (error.name === "AbortError") {
+        errorMessage = "La solicitud tardó demasiado. Intenta más tarde."
       } else if (error.message) {
         errorMessage = error.message
       }
-      
+
       toast({
         title: "Error de inicio de sesión",
         description: errorMessage,
@@ -173,8 +108,6 @@ export default function LoginPage() {
     }
   }
 
-  // No incluir usuarios de prueba en producción
-
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-64px)] py-12">
       <Card className="w-full max-w-md">
@@ -183,7 +116,9 @@ export default function LoginPage() {
             <LogoSection size="medium" showText={false} />
           </div>
           <CardTitle className="text-2xl font-bold text-center">Iniciar Sesión</CardTitle>
-          <CardDescription className="text-center">Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
+          <CardDescription className="text-center">
+            Ingresa tus credenciales para acceder a tu cuenta
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -213,8 +148,6 @@ export default function LoginPage() {
                 required
               />
             </div>
-
-            {/* Quick-login removed for production; use the form above to sign in */}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
