@@ -111,7 +111,14 @@ export default function RegisterPage() {
       }
 
       // Guardar información del usuario en localStorage
-      localStorage.setItem("user", JSON.stringify(data.user))
+      // Asegurar consistencia con la respuesta del login
+      const userToStore = {
+        ...data.user,
+        role: data.user.role || "user",      // Agregar role si no existe
+        isActive: data.user.isActive !== undefined ? data.user.isActive : true  // Agregar isActive si no existe
+      }
+      
+      localStorage.setItem("user", JSON.stringify(userToStore))
 
       // Guardar el token si está disponible
       if (data.token) {
