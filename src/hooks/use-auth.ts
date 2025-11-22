@@ -22,7 +22,8 @@ export function useAuth() {
 
         console.log("🔍 useAuth - Cargando usuario:", { storedUser, token })
 
-        if (storedUser && token) {
+        // Solo verificar que exista storedUser (el token puede ser vacío)
+        if (storedUser) {
           const userData = JSON.parse(storedUser)
           console.log("✅ useAuth - Usuario encontrado:", userData)
           setUser(userData)
