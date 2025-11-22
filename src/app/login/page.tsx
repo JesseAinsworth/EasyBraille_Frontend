@@ -74,8 +74,8 @@ export default function LoginPage() {
         description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
-      // Forzar actualización del router para que el Navbar se actualice
-      router.refresh()
+      // Pequeño delay para asegurar que el estado se actualice antes de navegar
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       const urlParams = new URLSearchParams(window.location.search)
       const redirectTo = urlParams.get("redirectTo")

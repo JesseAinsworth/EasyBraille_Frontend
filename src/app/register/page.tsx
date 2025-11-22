@@ -85,8 +85,8 @@ export default function RegisterPage() {
         description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
-      // Forzar actualización del router para que el Navbar se actualice
-      router.refresh()
+      // Pequeño delay para asegurar que el estado se actualice antes de navegar
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       router.push("/translator")
     } catch (error: any) {
