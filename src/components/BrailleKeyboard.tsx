@@ -112,14 +112,11 @@ export function BrailleKeyboard({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Detectar símbolos Braille Unicode (⠀-⣿ = U+2800 a U+28FF)
-      const isBrailleChar = /[⠀-⣿]/.test(event.key)
-      
       if (
         event.key.length === 1 &&
-        (isBrailleChar || /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()'" /]/.test(event.key))
+        /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()'" /]/.test(event.key)
       ) {
-        const key = event.key
+        const key = event.key.toLowerCase()
         setLastKey(key)
 
         setDetectedKeys((prev) => {
