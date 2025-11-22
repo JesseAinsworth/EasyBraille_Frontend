@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/Navbar"  // ✅ Import corregido (default)
+import { ToastProvider } from "@/components/ui/toast-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,15 +28,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen flex flex-col">
-            <Navbar /> {/* ✅ Navbar renderizado correctamente */}
-            <main className="flex-1">{children}</main>
-            <footer className="py-6 border-t">
-              <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-                © {new Date().getFullYear()} EasyBraille. Todos los derechos reservados.
-              </div>
-            </footer>
-          </div>
+          <ToastProvider>
+            <div className="min-h-screen flex flex-col">
+              <Navbar /> {/* ✅ Navbar renderizado correctamente */}
+              <main className="flex-1">{children}</main>
+              <footer className="py-6 border-t">
+                <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+                  © {new Date().getFullYear()} EasyBraille. Todos los derechos reservados.
+                </div>
+              </footer>
+            </div>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -71,7 +71,8 @@ export default function LoginPage() {
 
       toast({
         title: data.message || "Inicio de sesión exitoso",
-        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
+        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`,
+        type: "success"
       })
 
       // Usar window.location para forzar recarga completa con el usuario guardado
@@ -100,7 +101,7 @@ export default function LoginPage() {
       toast({
         title: "Error de inicio de sesión",
         description: errorMessage,
-        variant: "destructive",
+        type: "error"
       })
     } finally {
       setIsLoading(false)

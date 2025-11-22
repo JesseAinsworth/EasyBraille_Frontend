@@ -1,36 +1,56 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 
-type ToastProps = {
+export type ToastType = "success" | "error" | "warning" | "info"
+
+export interface Toast {
+  id: string
   title?: string
   description?: string
+  type?: ToastType
+  duration?: number
+}
+
+type ToastInput = Omit<Toast, "id"> & {
   variant?: "default" | "destructive"
 }
 
+let toastCount = 0
+
 export function useToast() {
-  const [toasts, setToasts] = useState<ToastProps[]>([])
+  const [toasts, setToasts] = useState<Toast[]>([])
 
-  const toast = (props: ToastProps) => {
+  const toast = useCallback((props: ToastInput) => {
+    const id = `toast-${++toastCount}-${Date.now()}`
+    
+    // Convertir variant a type para compatibilidad
+    let type: ToastType = props.type || "info"
+    if (props.variant === "destructive") {
+      type = "error"
+    } else if (props.variant === "default") {
+      type = "success"
+    }
+
+    const newToast: Toast = {
+      ...props,
+      id,
+      type,
+      duration: props.duration || 5000,
+    }
+
     setToasts((prev) => {
-      // Si el toast ya existe (por título o descripción), no añadirlo
+      // Evitar duplicados por título y descripción
       if (prev.some(t => t.title === props.title && t.description === props.description)) {
-        return prev;
+        return prev
       }
-
-      // Agregar nuevo toast al estado
-      return [...prev, props]
+      return [...prev, newToast]
     })
+  }, [])
 
-    // In a real implementation, we would show a toast notification
-    // For this demo, we'll just log to console
-    console.log(`Toast: ${props.title} - ${props.description}`)
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
 
-    // Remove toast after 3 seconds
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t !== props))
-    }, 3000)
-  }
-
-  return { toast, toasts }
+  return { toast, toasts, removeToast }
 }

@@ -30,7 +30,7 @@ export default function RegisterPage() {
       toast({
         title: "Error",
         description: "Las contraseñas no coinciden",
-        variant: "destructive",
+        type: "error"
       })
       return
     }
@@ -82,7 +82,8 @@ export default function RegisterPage() {
 
       toast({
         title: data.message || "Registro exitoso",
-        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
+        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`,
+        type: "success"
       })
 
       // Usar window.location para forzar recarga completa con el usuario guardado
@@ -97,7 +98,7 @@ export default function RegisterPage() {
       toast({
         title: "Error",
         description: errorMessage,
-        variant: "destructive",
+        type: "error"
       })
     } finally {
       setIsLoading(false)

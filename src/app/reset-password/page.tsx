@@ -50,7 +50,8 @@ export default function ResetPasswordPage() {
 
       toast({
         title: "Correo enviado",
-        description: "Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor, revisa tu bandeja de entrada."
+        description: "Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor, revisa tu bandeja de entrada.",
+        type: "success"
       })
 
       setEmail("")
@@ -59,7 +60,7 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: error.message || "No se pudo enviar el correo. Por favor, verifica que el correo esté registrado.",
-        variant: "destructive"
+        type: "error"
       })
     } finally {
       setIsLoading(false)
@@ -73,7 +74,7 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: "Token de restablecimiento no válido.",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -82,7 +83,7 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: "Las contraseñas no coinciden.",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -91,7 +92,7 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: "La contraseña debe tener al menos 6 caracteres.",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -114,7 +115,8 @@ export default function ResetPasswordPage() {
 
       toast({
         title: "Contraseña actualizada",
-        description: "Tu contraseña ha sido actualizada correctamente. Serás redirigido al inicio de sesión."
+        description: "Tu contraseña ha sido actualizada correctamente. Serás redirigido al inicio de sesión.",
+        type: "success"
       })
 
       // Redirigir al login después de 2 segundos
@@ -126,7 +128,7 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: error.message || "El enlace puede haber expirado o no es válido. Solicita uno nuevo.",
-        variant: "destructive"
+        type: "error"
       })
     } finally {
       setIsLoading(false)
