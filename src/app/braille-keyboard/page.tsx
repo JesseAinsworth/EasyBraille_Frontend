@@ -42,24 +42,13 @@ export default function BrailleKeyboardPage() {
       })
     }
     
-    // Verificar si ya es un símbolo Braille Unicode (el Arduino lo envía primero)
-    const isBrailleChar = /[⠀-⣿]/.test(text)
+    // El Arduino envía letras ASCII, convertirlas a símbolos Braille
+    const textLower = text.toLowerCase()
+    const brailleChar = letterToBraille[textLower] || text
+    setInputText((prev) => prev + brailleChar)
     
-    if (isBrailleChar) {
-      // Es un símbolo Braille, agregarlo directamente
-      setInputText((prev) => prev + text)
-      
-      // Traducir a español
-      const spanishMap: { [key: string]: string } = {
-        "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
-        "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
-        "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
-        "⠽": "y", "⠵": "z", " ":" ", "⠲": ".", "⠂": ",", "⠦": "?", "⠖": "!",
-      }
-      const spanishChar = spanishMap[text] || "?"
-      setOutputText((prev) => prev + spanishChar)
-    }
-    // Ignorar las letras ASCII que vienen después del símbolo Braille
+    // Mostrar la letra original en la columna de español
+    setOutputText((prev) => prev + text)
   }
   
   const handleVoice = () => {
