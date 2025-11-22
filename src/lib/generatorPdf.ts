@@ -15,120 +15,91 @@ export function generateTranslationPDF(translation: TranslationData): void {
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 20
-  const lineHeight = 10
   let currentY = margin
 
-  // Función para agregar texto con salto de línea automático
-  const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize = 12): number => {
-    doc.setFontSize(fontSize)
-    const lines = doc.splitTextToSize(text, maxWidth)
-
-    lines.forEach((line: string, index: number) => {
-      if (y + index * lineHeight > pageHeight - margin) {
-        doc.addPage()
-        y = margin
-      }
-      doc.text(line, x, y + index * lineHeight)
-    })
-
-    return y + lines.length * lineHeight
-  }
-
-  // Encabezado
+  // Logo y título (centrado)
   doc.setFontSize(20)
   doc.setFont("helvetica", "bold")
-  doc.text("EasyBraille - Traducción", pageWidth / 2, currentY, { align: "center" })
-  currentY += 20
+  doc.text("Tabla de Traducción Braille", pageWidth / 2, currentY, { align: "center" })
+  currentY += 15
 
-  // Información de la traducción
-  doc.setFontSize(12)
+  // Logo de EasyBraille (texto simulado, se podría agregar imagen)
+  doc.setFontSize(10)
   doc.setFont("helvetica", "normal")
+  doc.setTextColor(41, 128, 185) // Color azul para el logo
+  doc.text("EasyBraille", pageWidth - margin - 25, currentY - 10)
+  doc.setTextColor(0, 0, 0) // Volver a negro
+  currentY += 10
 
-  const translationTypeText =
-    translation.translationType === "TEXT_TO_BRAILLE" ? "Español a Braille" : "Braille a Español"
-
-  doc.text(`Tipo de traducción: ${translationTypeText}`, margin, currentY)
-  currentY += lineHeight
-
-  if (translation.timestamp) {
-    const dateStr = translation.timestamp.toLocaleString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-    doc.text(`Fecha: ${dateStr}`, margin, currentY)
-    currentY += lineHeight
-  }
-
-  if (translation.language) {
-    doc.text(`Idioma: ${translation.language.toUpperCase()}`, margin, currentY)
-    currentY += lineHeight
-  }
+  // ===== SECCIÓN 1: TEXTO EN BRAILLE =====
+  // Marco azul para el texto en Braille
+  doc.setDrawColor(41, 128, 185) // Azul
+  doc.setLineWidth(1.5)
+  doc.rect(margin, currentY, pageWidth - 2 * margin, 110) // Caja grande
 
   currentY += 10
 
-  // Línea separadora
-  doc.setDrawColor(200, 200, 200)
-  doc.line(margin, currentY, pageWidth - margin, currentY)
-  currentY += 15
-
-  // Texto original
-  doc.setFontSize(14)
-  doc.setFont("helvetica", "bold")
-  const originalLabel = translation.translationType === "TEXT_TO_BRAILLE" ? "Texto en Español:" : "Texto en Braille:"
-  doc.text(originalLabel, margin, currentY)
-  currentY += 15
-
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(12)
-
-  // Para texto Braille, usar una fuente monospace
-  if (translation.translationType === "BRAILLE_TO_TEXT") {
-    doc.setFont("courier", "normal")
-    doc.setFontSize(16)
-  }
-
-  currentY = addWrappedText(translation.originalText, margin, currentY, pageWidth - 2 * margin)
-  currentY += 15
-
-  // Línea separadora
-  doc.setDrawColor(200, 200, 200)
-  doc.line(margin, currentY, pageWidth - margin, currentY)
-  currentY += 15
-
-  // Texto traducido
-  doc.setFont("helvetica", "bold")
-  doc.setFontSize(14)
-  const translatedLabel = translation.translationType === "TEXT_TO_BRAILLE" ? "Texto en Braille:" : "Texto en Español:"
-  doc.text(translatedLabel, margin, currentY)
-  currentY += 15
-
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(12)
-
-  // Para texto Braille, usar una fuente monospace
-  if (translation.translationType === "TEXT_TO_BRAILLE") {
-    doc.setFont("courier", "normal")
-    doc.setFontSize(16)
-  }
-
-  currentY = addWrappedText(translation.translatedText, margin, currentY, pageWidth - 2 * margin)
-
-  // Pie de página
-  const footerY = pageHeight - 20
+  // Instrucciones
   doc.setFontSize(10)
-  doc.setFont("helvetica", "italic")
-  doc.setTextColor(128, 128, 128)
-  doc.text("Generado por EasyBraille - Traductor de Braille Accesible", pageWidth / 2, footerY, { align: "center" })
-  doc.text(`© ${new Date().getFullYear()} EasyBraille. Todos los derechos reservados.`, pageWidth / 2, footerY + 8, {
-    align: "center",
+  doc.setFont("helvetica", "bold")
+  doc.text("Texto en Braille: Perfora los puntos de este texto. Al terminar, gira la hoja para", margin + 5, currentY)
+  currentY += 5
+  doc.text("leer el relieve correctamente.", margin + 5, currentY)
+  currentY += 15
+
+  // Texto en Braille (fuente grande y monospace)
+  doc.setFont("courier", "normal")
+  doc.setFontSize(24) // Tamaño grande para Braille
+  
+  const brailleText = translation.translationType === "TEXT_TO_BRAILLE" 
+    ? translation.translatedText 
+    : translation.originalText
+
+  // Dividir el texto en líneas para que quepa en el cuadro
+  const brailleLines = doc.splitTextToSize(brailleText, pageWidth - 2 * margin - 10)
+  brailleLines.slice(0, 4).forEach((line: string, index: number) => {
+    doc.text(line, margin + 5, currentY + (index * 15))
   })
 
+  currentY += 110 + 10
+
+  // ===== SECCIÓN 2: TEXTO NORMAL EN ESPAÑOL =====
+  // Marco azul para el texto en español
+  doc.setDrawColor(41, 128, 185) // Azul
+  doc.setLineWidth(1.5)
+  doc.rect(margin, currentY, pageWidth - 2 * margin, 80) // Caja mediana
+
+  currentY += 10
+
+  // Etiqueta
+  doc.setFontSize(12)
+  doc.setFont("helvetica", "bold")
+  doc.text("Texto Normal en español:", margin + 5, currentY)
+  currentY += 15
+
+  // Texto en español
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(14)
+  
+  const spanishText = translation.translationType === "TEXT_TO_BRAILLE" 
+    ? translation.originalText 
+    : translation.translatedText
+
+  const spanishLines = doc.splitTextToSize(spanishText, pageWidth - 2 * margin - 10)
+  spanishLines.slice(0, 3).forEach((line: string, index: number) => {
+    doc.text(line, margin + 5, currentY + (index * 10))
+  })
+
+  // Pie de página
+  const footerY = pageHeight - 15
+  doc.setFontSize(9)
+  doc.setFont("helvetica", "italic")
+  doc.setTextColor(128, 128, 128)
+  doc.text("Generado por EasyBraille", pageWidth / 2, footerY, { align: "center" })
+
   // Generar nombre del archivo
-  const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-")
-  const filename = `traduccion-braille-${timestamp}.pdf`
+  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "")
+  const filename = `BrailleTemplate_${timestamp}.pdf`
 
   // Descargar el PDF
   doc.save(filename)
