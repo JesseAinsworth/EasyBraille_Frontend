@@ -47,51 +47,82 @@ export function generateTranslationPDF(translation: TranslationData): void {
   doc.text("leer el relieve correctamente.", margin + 5, currentY)
   currentY += 15
 
-  // Texto en Braille (fuente grande y monospace)
+  // Texto en Braille - usar representación gráfica con círculos
   const brailleText = translation.translationType === "TEXT_TO_BRAILLE" 
     ? translation.translatedText 
     : translation.originalText
 
-  // jsPDF tiene problemas con Unicode Braille, usar representación de puntos
-  const brailleToDots: { [key: string]: string } = {
-    "⠁": "(1)", "⠃": "(1,2)", "⠉": "(1,4)", "⠙": "(1,4,5)", "⠑": "(1,5)", 
-    "⠋": "(1,2,4)", "⠛": "(1,2,4,5)", "⠓": "(1,2,5)", "⠊": "(2,4)", "⠚": "(2,4,5)",
-    "⠅": "(1,3)", "⠇": "(1,2,3)", "⠍": "(1,3,4)", "⠝": "(1,3,4,5)", "⠕": "(1,3,5)",
-    "⠏": "(1,2,3,4)", "⠟": "(1,2,3,4,5)", "⠗": "(1,2,3,5)", "⠎": "(2,3,4)", "⠞": "(2,3,4,5)",
-    "⠥": "(1,3,6)", "⠧": "(1,2,3,6)", "⠺": "(2,4,5,6)", "⠭": "(1,3,4,6)", 
-    "⠽": "(1,3,4,5,6)", "⠵": "(1,3,5,6)", " ": " ",
-    "⠲": "(2,5,6)", "⠂": "(2)", "⠦": "(2,3,6)", "⠖": "(2,3,5)",
+  // Mapeo de caracteres Braille a patrones de puntos (1-6)
+  const brailleToPattern: { [key: string]: number[] } = {
+    "⠁": [1], "⠃": [1,2], "⠉": [1,4], "⠙": [1,4,5], "⠑": [1,5], 
+    "⠋": [1,2,4], "⠛": [1,2,4,5], "⠓": [1,2,5], "⠊": [2,4], "⠚": [2,4,5],
+    "⠅": [1,3], "⠇": [1,2,3], "⠍": [1,3,4], "⠝": [1,3,4,5], "⠕": [1,3,5],
+    "⠏": [1,2,3,4], "⠟": [1,2,3,4,5], "⠗": [1,2,3,5], "⠎": [2,3,4], "⠞": [2,3,4,5],
+    "⠥": [1,3,6], "⠧": [1,2,3,6], "⠺": [2,4,5,6], "⠭": [1,3,4,6], 
+    "⠽": [1,3,4,5,6], "⠵": [1,3,5,6],
+    "⠲": [2,5,6], "⠂": [2], "⠦": [2,3,6], "⠖": [2,3,5],
+    "⠼": [3,4,5,6], "⠐": [5], "⠤": [3,6], "⠸": [4,5,6], "⠄": [3],
   }
 
-  // Crear representación con símbolos Braille Y notación de puntos
-  doc.setFont("courier", "bold")
-  doc.setFontSize(20)
-  
-  // Dividir texto en líneas
-  const maxCharsPerLine = 25
-  const lines: string[] = []
-  for (let i = 0; i < brailleText.length; i += maxCharsPerLine) {
-    lines.push(brailleText.substring(i, i + maxCharsPerLine))
-  }
-
-  // Mostrar cada línea con su símbolo Braille
-  lines.slice(0, 3).forEach((line: string, lineIndex: number) => {
-    let xPos = margin + 5
-    const yPos = currentY + (lineIndex * 25)
+  // Función para dibujar una celda Braille
+  const drawBrailleCell = (x: number, y: number, pattern: number[], letter: string) => {
+    const dotRadius = 2.5
+    const cellWidth = 8
+    const cellHeight = 14
     
-    // Intentar mostrar símbolos Braille directamente
-    doc.setFontSize(28)
-    doc.text(line, xPos, yPos)
+    // Posiciones de los 6 puntos en una celda Braille
+    const dotPositions: { [key: number]: [number, number] } = {
+      1: [0, 0],
+      2: [0, 5],
+      3: [0, 10],
+      4: [4, 0],
+      5: [4, 5],
+      6: [4, 10],
+    }
     
-    // Agregar notación de puntos debajo (más pequeño)
+    // Dibujar puntos llenos para los activos, vacíos para los inactivos
+    for (let i = 1; i <= 6; i++) {
+      const [dx, dy] = dotPositions[i]
+      const isActive = pattern.includes(i)
+      
+      if (isActive) {
+        doc.setFillColor(0, 0, 0)
+        doc.circle(x + dx, y + dy, dotRadius, 'F')
+      } else {
+        doc.setDrawColor(200, 200, 200)
+        doc.circle(x + dx, y + dy, dotRadius, 'S')
+      }
+    }
+    
+    // Letra debajo
     doc.setFontSize(8)
     doc.setTextColor(100, 100, 100)
-    let dotsText = ""
-    for (let char of line) {
-      dotsText += (brailleToDots[char] || char) + " "
-    }
-    doc.text(dotsText.substring(0, 80), xPos, yPos + 6)
+    doc.text(letter, x - 1, y + cellHeight + 2)
     doc.setTextColor(0, 0, 0)
+  }
+
+  // Dibujar el texto Braille carácter por carácter
+  const charsPerLine = 15
+  const lines: string[] = []
+  for (let i = 0; i < brailleText.length; i += charsPerLine) {
+    lines.push(brailleText.substring(i, i + charsPerLine))
+  }
+
+  lines.slice(0, 3).forEach((line: string, lineIndex: number) => {
+    const yPos = currentY + (lineIndex * 22)
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i]
+      const xPos = margin + 10 + (i * 12)
+      
+      if (char === ' ') {
+        // Espacio - no dibujar nada
+        continue
+      }
+      
+      const pattern = brailleToPattern[char] || []
+      drawBrailleCell(xPos, yPos, pattern, char === ' ' ? '' : char)
+    }
   })
 
   currentY += 110 + 10
