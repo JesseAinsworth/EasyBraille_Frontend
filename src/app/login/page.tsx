@@ -70,9 +70,10 @@ export default function LoginPage() {
       login(userToStore, data.token || "")
 
       toast({
-        title: data.message || "Inicio de sesión exitoso",
-        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`,
-        type: "success"
+        title: "¡Bienvenido de nuevo!",
+        description: `Hola ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu sesión ha iniciado correctamente.`,
+        type: "success",
+        duration: 4000
       })
 
       // Usar window.location para forzar recarga completa con el usuario guardado
@@ -90,18 +91,34 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       console.error("Error de inicio de sesión:", error)
-      let errorMessage = "Credenciales incorrectas. Por favor, intenta de nuevo."
+      
+      let errorTitle = "Error de inicio de sesión"
+      let errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo."
 
       if (error.name === "AbortError") {
-        errorMessage = "La solicitud tardó demasiado. Intenta más tarde."
+        errorTitle = "Tiempo de espera agotado"
+        errorMessage = "La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente."
       } else if (error.message) {
-        errorMessage = error.message
+        // Mensajes específicos del backend
+        if (error.message.includes("Credenciales") || error.message.includes("incorrectas") || error.message.includes("inválidas")) {
+          errorTitle = "Credenciales incorrectas"
+          errorMessage = "El correo o la contraseña son incorrectos. Verifica tus datos."
+        } else if (error.message.includes("Usuario no encontrado") || error.message.includes("no existe")) {
+          errorTitle = "Usuario no encontrado"
+          errorMessage = "No existe una cuenta con este correo. ¿Deseas registrarte?"
+        } else if (error.message.includes("inactiv") || error.message.includes("bloqueado")) {
+          errorTitle = "Cuenta inactiva"
+          errorMessage = "Tu cuenta está inactiva. Contacta al administrador."
+        } else {
+          errorMessage = error.message
+        }
       }
 
       toast({
-        title: "Error de inicio de sesión",
+        title: errorTitle,
         description: errorMessage,
-        type: "error"
+        type: "error",
+        duration: 6000
       })
     } finally {
       setIsLoading(false)

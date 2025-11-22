@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Settings, Shield, LogOut } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
 export function UserNav() {
   const { user, logout } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   // Debug: Log cuando cambia el estado del usuario
   useEffect(() => {
@@ -33,10 +35,30 @@ export function UserNav() {
         method: "POST",
         credentials: "include",
       })
+      
+      logout()
+      
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente. ¡Hasta pronto!",
+        type: "success",
+        duration: 3000
+      })
+      
+      router.push("/login")
     } catch (error) {
       console.error("Error during logout:", error)
-    } finally {
+      
+      // Aún así cerrar sesión localmente
       logout()
+      
+      toast({
+        title: "Sesión cerrada",
+        description: "Tu sesión ha sido cerrada localmente.",
+        type: "info",
+        duration: 3000
+      })
+      
       router.push("/login")
     }
   }

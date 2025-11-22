@@ -28,9 +28,10 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "Error",
-        description: "Las contraseñas no coinciden",
-        type: "error"
+        title: "Las contraseñas no coinciden",
+        description: "Por favor, asegúrate de que ambas contraseñas sean idénticas.",
+        type: "error",
+        duration: 5000
       })
       return
     }
@@ -81,24 +82,44 @@ export default function RegisterPage() {
       login(userToStore, data.token || "")
 
       toast({
-        title: data.message || "Registro exitoso",
-        description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`,
-        type: "success"
+        title: "¡Cuenta creada exitosamente!",
+        description: `Hola ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu cuenta ha sido creada. Redirigiendo...",
+        type: "success",
+        duration: 4000
       })
 
       // Usar window.location para forzar recarga completa con el usuario guardado
       window.location.href = "/translator"
     } catch (error: any) {
+      console.error("Error de registro:", error)
+      
+      let errorTitle = "Error de registro"
       let errorMessage = "Ocurrió un error durante el registro. Por favor, intenta de nuevo."
+      
       if (error.name === "AbortError") {
-        errorMessage = "La solicitud tardó demasiado. Intenta más tarde."
+        errorTitle = "Tiempo de espera agotado"
+        errorMessage = "La solicitud tardó demasiado. Verifica tu conexión e intenta nuevamente."
       } else if (error.message) {
-        errorMessage = error.message
+        // Mensajes específicos del backend
+        if (error.message.includes("ya existe") || error.message.includes("already exists")) {
+          errorTitle = "Usuario ya registrado"
+          errorMessage = "Ya existe una cuenta con este correo electrónico. ¿Deseas iniciar sesión?"
+        } else if (error.message.includes("correo") || error.message.includes("email")) {
+          errorTitle = "Correo inválido"
+          errorMessage = "Por favor, ingresa un correo electrónico válido."
+        } else if (error.message.includes("contraseña") || error.message.includes("password")) {
+          errorTitle = "Contraseña inválida"
+          errorMessage = "La contraseña debe tener al menos 6 caracteres."
+        } else {
+          errorMessage = error.message
+        }
       }
+      
       toast({
-        title: "Error",
+        title: errorTitle,
         description: errorMessage,
-        type: "error"
+        type: "error",
+        duration: 6000
       })
     } finally {
       setIsLoading(false)

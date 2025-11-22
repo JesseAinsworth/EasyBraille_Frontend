@@ -7,14 +7,82 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { BrailleKeyboard } from "@/components/BrailleKeyboard"
 import { BrailleKeyboardGuide } from "@/components/BrailleKeyboardGuide"
-import { Keyboard, Code, Settings, ArrowLeft } from "lucide-react"
+import { Keyboard, Code, Settings, ArrowLeft, Volume2 } from "lucide-react"
 import Link from "next/link"
+import { useToast } from "@/hooks/use-toast"
 
 export default function BrailleKeyboardPage() {
   const [inputText, setInputText] = useState("")
+  const [outputText, setOutputText] = useState("")
+  const [translationDirection] = useState<"frombraille">("frombraille")
+  const { toast } = useToast()
+
+  // Mapeo de letras a símbolos Braille (el teclado físico envía letras)
+  const letterToBraille: { [key: string]: string } = {
+    a: "⠁", b: "⠃", c: "⠉", d: "⠙", e: "⠑", f: "⠋", g: "⠛", h: "⠓",
+    i: "⠊", j: "⠚", k: "⠅", l: "⠇", m: "⠍", n: "⠝", o: "⠕", p: "⠏",
+    q: "⠟", r: "⠗", s: "⠎", t: "⠞", u: "⠥", v: "⠧", w: "⠺", x: "⠭",
+    y: "⠽", z: "⠵", " ":" ",
+  }
 
   const handleTextInput = (text: string) => {
-    setInputText((prev) => prev + text)
+    // Convertir letras a símbolos Braille automáticamente
+    const brailleChar = letterToBraille[text.toLowerCase()] || text
+    setInputText((prev) => prev + brailleChar)
+    
+    // Traducir automáticamente a español
+    const spanishMap: { [key: string]: string } = {
+      "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
+      "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
+      "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
+      "⠽": "y", "⠵": "z", " ":" ",
+    }
+    const spanishChar = spanishMap[brailleChar] || brailleChar
+    setOutputText((prev) => prev + spanishChar)
+  }
+  
+  const handleVoice = () => {
+    if (!outputText) {
+      toast({
+        title: "Sin texto",
+        description: "No hay texto en español para leer.",
+        type: "warning",
+        duration: 3000
+      })
+      return
+    }
+    
+    try {
+      const utterance = new SpeechSynthesisUtterance(outputText)
+      utterance.lang = "es-ES"
+      utterance.rate = 0.9
+      window.speechSynthesis.speak(utterance)
+      
+      toast({
+        title: "Reproduciendo",
+        description: "Leyendo el texto en voz alta.",
+        type: "info",
+        duration: 3000
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo reproducir el texto.",
+        type: "error",
+        duration: 3000
+      })
+    }
+  }
+  
+  const handleClear = () => {
+    setInputText("")
+    setOutputText("")
+    toast({
+      title: "Limpiado",
+      description: "El texto ha sido eliminado.",
+      type: "success",
+      duration: 2000
+    })
   }
 
   return (
@@ -49,39 +117,59 @@ export default function BrailleKeyboardPage() {
             <TabsContent value="keyboard">
               <Card>
                 <CardHeader>
-                  <CardTitle>Prueba tu Teclado Braille</CardTitle>
+                  <CardTitle>Teclado Braille → Español</CardTitle>
                   <CardDescription>
-                    Conecta tu teclado Arduino y comienza a escribir para probar su funcionamiento
+                    Conecta tu teclado Arduino y escribe en Braille. La traducción a español aparecerá automáticamente.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <BrailleKeyboard
                     onTextInput={handleTextInput}
-                    onBackspace={() => setInputText((prev) => prev.slice(0, -1))}
-                    onSpace={() => setInputText((prev) => prev + " ")}
-                    onVoice={() => {
-                      // Leer el texto ingresado en voz alta
-                      if (inputText) {
-                        const utterance = new SpeechSynthesisUtterance(inputText)
-                        utterance.lang = "es-ES"
-                        utterance.rate = 0.9
-                        window.speechSynthesis.speak(utterance)
-                      }
+                    onBackspace={() => {
+                      setInputText((prev) => prev.slice(0, -1))
+                      setOutputText((prev) => prev.slice(0, -1))
                     }}
+                    onSpace={() => {
+                      setInputText((prev) => prev + " ")
+                      setOutputText((prev) => prev + " ")
+                    }}
+                    onVoice={handleVoice}
                   />
 
-                  <div className="space-y-2 mt-4">
-                    <label className="text-sm font-medium">Texto ingresado</label>
-                    <Textarea
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      className="min-h-[150px] font-mono"
-                      placeholder="El texto del teclado aparecerá aquí..."
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Braille</label>
+                      <Textarea
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        className="min-h-[150px] font-mono text-2xl"
+                        placeholder="⠃⠗⠁⠊⠇⠇⠑"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Español</label>
+                      <Textarea
+                        value={outputText}
+                        onChange={(e) => setOutputText(e.target.value)}
+                        className="min-h-[150px] font-mono"
+                        placeholder="braille"
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex justify-end">
-                    <Button variant="outline" onClick={() => setInputText("")}>
+                  <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleVoice}
+                      disabled={!outputText}
+                    >
+                      <Volume2 className="mr-2 h-4 w-4" />
+                      Leer en voz alta
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleClear}
+                    >
                       Limpiar
                     </Button>
                   </div>
