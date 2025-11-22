@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { LogoSection } from "@/components/LogoSection"
+import { useAuth } from "@/hooks/use-auth"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,13 +65,9 @@ export default function LoginPage() {
       }
 
       console.log("🔧 Debug - userToStore:", userToStore)
-      localStorage.setItem("user", JSON.stringify(userToStore))
-
-      if (data.token) {
-        localStorage.setItem("token", data.token)
-      }
-
-      window.dispatchEvent(new Event("auth-change"))
+      
+      // Usar el método login del hook para actualizar la barra automáticamente
+      login(userToStore, data.token || "")
 
       toast({
         title: data.message || "Inicio de sesión exitoso",

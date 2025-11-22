@@ -14,8 +14,6 @@ export default function Navbar() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
 
-  if (isLoading) return null
-
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
 
