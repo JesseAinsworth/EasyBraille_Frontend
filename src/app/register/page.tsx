@@ -85,10 +85,8 @@ export default function RegisterPage() {
         description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
-      // Pequeño delay para asegurar que el estado se actualice antes de navegar
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      router.push("/translator")
+      // Usar window.location para forzar recarga completa con el usuario guardado
+      window.location.href = "/translator"
     } catch (error: any) {
       let errorMessage = "Ocurrió un error durante el registro. Por favor, intenta de nuevo."
       if (error.name === "AbortError") {

@@ -74,19 +74,17 @@ export default function LoginPage() {
         description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
-      // Pequeño delay para asegurar que el estado se actualice antes de navegar
-      await new Promise(resolve => setTimeout(resolve, 100))
-
+      // Usar window.location para forzar recarga completa con el usuario guardado
       const urlParams = new URLSearchParams(window.location.search)
       const redirectTo = urlParams.get("redirectTo")
 
       if (redirectTo) {
-        router.push(redirectTo)
+        window.location.href = redirectTo
       } else {
         if (data.user.role === "admin") {
-          router.push("/admin")
+          window.location.href = "/admin"
         } else {
-          router.push("/translator")
+          window.location.href = "/translator"
         }
       }
     } catch (error: any) {

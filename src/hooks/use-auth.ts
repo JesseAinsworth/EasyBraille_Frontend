@@ -75,13 +75,8 @@ export function useAuth() {
 
     console.log("✅ useAuth.login - Usuario guardado y estado actualizado")
 
-    // Disparar evento para que otros componentes se actualicen
+    // Solo disparar evento auth-change (no storage para evitar loops)
     window.dispatchEvent(new Event("auth-change"))
-    window.dispatchEvent(new StorageEvent("storage", {
-      key: "user",
-      newValue: JSON.stringify(userData),
-      url: window.location.href
-    }))
   }
 
   // ✅ Logout: limpia sesión
