@@ -11,8 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast"
 import { LogoSection } from "@/components/LogoSection"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
-
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -37,7 +35,8 @@ export default function ResetPasswordPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      // Usar el proxy local en lugar de llamar directamente al backend
+      const response = await fetch(`/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -100,7 +99,8 @@ export default function ResetPasswordPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+      // Usar el proxy local en lugar de llamar directamente al backend
+      const response = await fetch(`/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, newPassword: password })
