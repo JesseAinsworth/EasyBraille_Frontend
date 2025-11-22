@@ -83,7 +83,7 @@ export default function RegisterPage() {
 
       toast({
         title: "¡Cuenta creada exitosamente!",
-        description: `Hola ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu cuenta ha sido creada. Redirigiendo...",
+        description: `Hola ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu cuenta ha sido creada. Redirigiendo...`,
         type: "success",
         duration: 4000
       })
