@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -20,6 +21,11 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebacke
 export function UserNav() {
   const { user, logout } = useAuth()
   const router = useRouter()
+
+  // Debug: Log cuando cambia el estado del usuario
+  useEffect(() => {
+    console.log("👤 UserNav - Usuario:", user)
+  }, [user])
 
   const handleLogout = async () => {
     try {

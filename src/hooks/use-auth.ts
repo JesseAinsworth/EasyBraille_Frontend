@@ -20,9 +20,14 @@ export function useAuth() {
         const storedUser = localStorage.getItem("user")
         const token = localStorage.getItem("token")
 
+        console.log("🔍 useAuth - Cargando usuario:", { storedUser, token })
+
         if (storedUser && token) {
-          setUser(JSON.parse(storedUser))
+          const userData = JSON.parse(storedUser)
+          console.log("✅ useAuth - Usuario encontrado:", userData)
+          setUser(userData)
         } else {
+          console.log("❌ useAuth - No hay usuario")
           setUser(null)
         }
       } catch (error) {
@@ -59,12 +64,16 @@ export function useAuth() {
 
   // ✅ Login: guarda usuario y token
   const login = (userData: User, token: string) => {
+    console.log("🔐 useAuth.login - Guardando usuario:", userData)
+    
     localStorage.setItem("user", JSON.stringify(userData))
     localStorage.setItem("token", token)
     
     // Actualizar el estado inmediatamente
     setUser(userData)
     setIsLoading(false)
+
+    console.log("✅ useAuth.login - Usuario guardado y estado actualizado")
 
     // Disparar evento para que otros componentes se actualicen
     window.dispatchEvent(new Event("auth-change"))
