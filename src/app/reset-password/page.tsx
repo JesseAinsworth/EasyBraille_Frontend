@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -10,36 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-// Client-side mock implementations for reset password flow (demo only)
-function generateResetPasswordToken(email: string) {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36)
-}
-
-function saveResetToken(email: string, token: string) {
-  // Store token in localStorage for demo/testing
-  const map = JSON.parse(localStorage.getItem("resetTokens") || "{}")
-  map[token] = { email, issuedAt: Date.now() }
-  localStorage.setItem("resetTokens", JSON.stringify(map))
-}
-
-function verifyResetToken(token: string) {
-  const map = JSON.parse(localStorage.getItem("resetTokens") || "{}")
-  const entry = map[token]
-  if (!entry) return false
-  // expire after 24h
-  return Date.now() - entry.issuedAt < 24 * 60 * 60 * 1000
-}
-
-function resetPasswordWithToken(token: string, newPassword: string) {
-  const map = JSON.parse(localStorage.getItem("resetTokens") || "{}")
-  const entry = map[token]
-  if (!entry) return false
-  // In a real app we would update the user's password in DB. Here we just remove token.
-  delete map[token]
-  localStorage.setItem("resetTokens", JSON.stringify(map))
-  return true
-}
 import { LogoSection } from "@/components/LogoSection"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("")
@@ -53,60 +25,44 @@ export default function ResetPasswordPage() {
   const { toast } = useToast()
   const isRequest = step === "request"
 
-  // Si hay un token en la URL, verificarlo y mostrar el formulario de restablecimiento
+  // Si hay un token en la URL, cambiar al paso de reset
   useEffect(() => {
-    if (!token) return
-
-    // Verificar que el token sea válido
-    const isValid = verifyResetToken(token)
-    if (isValid) {
+    if (token) {
       setStep("reset")
-    } else {
-      toast({
-        title: "Token inválido",
-        description: "El enlace de restablecimiento ha expirado o no es válido.",
-        variant: "destructive",
-      })
     }
-  }, [token, toast])
+  }, [token])
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // En una aplicación real, esto enviaría un correo electrónico
-      // Para esta demo, simplemente generamos un token y lo guardamos
-      setTimeout(() => {
-        try {
-          const token = generateResetPasswordToken(email)
-          saveResetToken(email, token)
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      })
 
-          // En una aplicación real, enviaríamos un correo con el enlace
-          // Para esta demo, mostramos el enlace en la consola
-          console.log(`Enlace de restablecimiento: ${window.location.origin}/reset-password?token=${token}`)
+      const data = await response.json()
 
-          toast({
-            title: "Solicitud enviada",
-            description:
-              "Se ha enviado un enlace de restablecimiento a tu correo electrónico. (Revisa la consola para ver el enlace)",
-          })
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "No se encontró ninguna cuenta con ese correo electrónico.",
-            variant: "destructive",
-          })
-        }
+      if (!response.ok) {
+        throw new Error(data.error || "Error al enviar el correo de recuperación")
+      }
 
-        setIsLoading(false)
-      }, 1500)
-    } catch (error) {
+      toast({
+        title: "Correo enviado",
+        description: "Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor, revisa tu bandeja de entrada."
+      })
+
+      setEmail("")
+    } catch (error: any) {
+      console.error("Error al solicitar recuperación:", error)
       toast({
         title: "Error",
-        description: "Ocurrió un error al procesar tu solicitud. Por favor, intenta de nuevo.",
-        variant: "destructive",
+        description: error.message || "No se pudo enviar el correo. Por favor, verifica que el correo esté registrado.",
+        variant: "destructive"
       })
+    } finally {
       setIsLoading(false)
     }
   }
@@ -118,7 +74,7 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: "Token de restablecimiento no válido.",
-        variant: "destructive",
+        variant: "destructive"
       })
       return
     }
@@ -127,7 +83,16 @@ export default function ResetPasswordPage() {
       toast({
         title: "Error",
         description: "Las contraseñas no coinciden.",
-        variant: "destructive",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres.",
+        variant: "destructive"
       })
       return
     }
@@ -135,36 +100,35 @@ export default function ResetPasswordPage() {
     setIsLoading(true)
 
     try {
-      // Simular una llamada a la API
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword: password })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al restablecer la contraseña")
+      }
+
+      toast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido actualizada correctamente. Serás redirigido al inicio de sesión."
+      })
+
+      // Redirigir al login después de 2 segundos
       setTimeout(() => {
-        const success = resetPasswordWithToken(token, password)
-
-        if (success) {
-          toast({
-            title: "Contraseña actualizada",
-            description: "Tu contraseña ha sido actualizada correctamente.",
-          })
-
-          // Redirigir al login después de 2 segundos
-          setTimeout(() => {
-            router.push("/login")
-          }, 2000)
-        } else {
-          toast({
-            title: "Error",
-            description: "No se pudo restablecer la contraseña. El enlace puede haber expirado.",
-            variant: "destructive",
-          })
-        }
-
-        setIsLoading(false)
-      }, 1500)
-    } catch (error) {
+        router.push("/login")
+      }, 2000)
+    } catch (error: any) {
+      console.error("Error al restablecer contraseña:", error)
       toast({
         title: "Error",
-        description: "Ocurrió un error al restablecer tu contraseña. Por favor, intenta de nuevo.",
-        variant: "destructive",
+        description: error.message || "El enlace puede haber expirado o no es válido. Solicita uno nuevo.",
+        variant: "destructive"
       })
+    } finally {
       setIsLoading(false)
     }
   }
