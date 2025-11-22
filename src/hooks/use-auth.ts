@@ -61,9 +61,18 @@ export function useAuth() {
   const login = (userData: User, token: string) => {
     localStorage.setItem("user", JSON.stringify(userData))
     localStorage.setItem("token", token)
+    
+    // Actualizar el estado inmediatamente
     setUser(userData)
+    setIsLoading(false)
 
+    // Disparar evento para que otros componentes se actualicen
     window.dispatchEvent(new Event("auth-change"))
+    window.dispatchEvent(new StorageEvent("storage", {
+      key: "user",
+      newValue: JSON.stringify(userData),
+      url: window.location.href
+    }))
   }
 
   // ✅ Logout: limpia sesión

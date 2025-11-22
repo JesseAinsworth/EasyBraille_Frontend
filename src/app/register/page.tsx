@@ -85,6 +85,9 @@ export default function RegisterPage() {
         description: `Bienvenido, ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}`
       })
 
+      // Forzar actualización del router para que el Navbar se actualice
+      router.refresh()
+
       router.push("/translator")
     } catch (error: any) {
       let errorMessage = "Ocurrió un error durante el registro. Por favor, intenta de nuevo."
