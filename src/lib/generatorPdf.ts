@@ -48,17 +48,50 @@ export function generateTranslationPDF(translation: TranslationData): void {
   currentY += 15
 
   // Texto en Braille (fuente grande y monospace)
-  doc.setFont("courier", "normal")
-  doc.setFontSize(24) // Tamaño grande para Braille
-  
   const brailleText = translation.translationType === "TEXT_TO_BRAILLE" 
     ? translation.translatedText 
     : translation.originalText
 
-  // Dividir el texto en líneas para que quepa en el cuadro
-  const brailleLines = doc.splitTextToSize(brailleText, pageWidth - 2 * margin - 10)
-  brailleLines.slice(0, 4).forEach((line: string, index: number) => {
-    doc.text(line, margin + 5, currentY + (index * 15))
+  // jsPDF tiene problemas con Unicode Braille, usar representación de puntos
+  const brailleToDots: { [key: string]: string } = {
+    "⠁": "(1)", "⠃": "(1,2)", "⠉": "(1,4)", "⠙": "(1,4,5)", "⠑": "(1,5)", 
+    "⠋": "(1,2,4)", "⠛": "(1,2,4,5)", "⠓": "(1,2,5)", "⠊": "(2,4)", "⠚": "(2,4,5)",
+    "⠅": "(1,3)", "⠇": "(1,2,3)", "⠍": "(1,3,4)", "⠝": "(1,3,4,5)", "⠕": "(1,3,5)",
+    "⠏": "(1,2,3,4)", "⠟": "(1,2,3,4,5)", "⠗": "(1,2,3,5)", "⠎": "(2,3,4)", "⠞": "(2,3,4,5)",
+    "⠥": "(1,3,6)", "⠧": "(1,2,3,6)", "⠺": "(2,4,5,6)", "⠭": "(1,3,4,6)", 
+    "⠽": "(1,3,4,5,6)", "⠵": "(1,3,5,6)", " ": " ",
+    "⠲": "(2,5,6)", "⠂": "(2)", "⠦": "(2,3,6)", "⠖": "(2,3,5)",
+  }
+
+  // Crear representación con símbolos Braille Y notación de puntos
+  doc.setFont("courier", "bold")
+  doc.setFontSize(20)
+  
+  // Dividir texto en líneas
+  const maxCharsPerLine = 25
+  const lines: string[] = []
+  for (let i = 0; i < brailleText.length; i += maxCharsPerLine) {
+    lines.push(brailleText.substring(i, i + maxCharsPerLine))
+  }
+
+  // Mostrar cada línea con su símbolo Braille
+  lines.slice(0, 3).forEach((line: string, lineIndex: number) => {
+    let xPos = margin + 5
+    const yPos = currentY + (lineIndex * 25)
+    
+    // Intentar mostrar símbolos Braille directamente
+    doc.setFontSize(28)
+    doc.text(line, xPos, yPos)
+    
+    // Agregar notación de puntos debajo (más pequeño)
+    doc.setFontSize(8)
+    doc.setTextColor(100, 100, 100)
+    let dotsText = ""
+    for (let char of line) {
+      dotsText += (brailleToDots[char] || char) + " "
+    }
+    doc.text(dotsText.substring(0, 80), xPos, yPos + 6)
+    doc.setTextColor(0, 0, 0)
   })
 
   currentY += 110 + 10
