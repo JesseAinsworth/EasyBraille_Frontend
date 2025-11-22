@@ -15,6 +15,7 @@ export default function BrailleKeyboardPage() {
   const [inputText, setInputText] = useState("")
   const [outputText, setOutputText] = useState("")
   const [translationDirection] = useState<"frombraille">("frombraille")
+  const [keyboardConnected, setKeyboardConnected] = useState(false)
   const { toast } = useToast()
 
   // Mapeo de letras a símbolos Braille (el teclado físico envía letras)
@@ -26,19 +27,48 @@ export default function BrailleKeyboardPage() {
   }
 
   const handleTextInput = (text: string) => {
-    // Convertir letras a símbolos Braille automáticamente
-    const brailleChar = letterToBraille[text.toLowerCase()] || text
-    setInputText((prev) => prev + brailleChar)
-    
-    // Traducir automáticamente a español
-    const spanishMap: { [key: string]: string } = {
-      "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
-      "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
-      "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
-      "⠽": "y", "⠵": "z", " ":" ",
+    // Notificar conexión del teclado la primera vez
+    if (!keyboardConnected) {
+      setKeyboardConnected(true)
+      toast({
+        title: "✅ Teclado Braille detectado",
+        description: "Tu teclado Arduino está conectado y funcionando correctamente.",
+        type: "success",
+        duration: 3000
+      })
     }
-    const spanishChar = spanishMap[brailleChar] || brailleChar
-    setOutputText((prev) => prev + spanishChar)
+    
+    // Verificar si el carácter ya es un símbolo Braille (Unicode U+2800 a U+28FF)
+    const isBrailleChar = /[⠀-⣿]/.test(text)
+    
+    if (isBrailleChar) {
+      // Ya es Braille, agregarlo directamente
+      setInputText((prev) => prev + text)
+      
+      // Traducir a español
+      const spanishMap: { [key: string]: string } = {
+        "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
+        "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
+        "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
+        "⠽": "y", "⠵": "z", " ":" ",
+      }
+      const spanishChar = spanishMap[text] || "?"
+      setOutputText((prev) => prev + spanishChar)
+    } else {
+      // Es una letra normal, convertir a Braille
+      const brailleChar = letterToBraille[text.toLowerCase()] || text
+      setInputText((prev) => prev + brailleChar)
+      
+      // Traducir automáticamente a español
+      const spanishMap: { [key: string]: string } = {
+        "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
+        "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
+        "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
+        "⠽": "y", "⠵": "z", " ":" ",
+      }
+      const spanishChar = spanishMap[brailleChar] || brailleChar
+      setOutputText((prev) => prev + spanishChar)
+    }
   }
   
   const handleVoice = () => {
