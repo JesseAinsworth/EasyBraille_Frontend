@@ -24,6 +24,10 @@ export default function BrailleKeyboardPage() {
     i: "⠊", j: "⠚", k: "⠅", l: "⠇", m: "⠍", n: "⠝", o: "⠕", p: "⠏",
     q: "⠟", r: "⠗", s: "⠎", t: "⠞", u: "⠥", v: "⠧", w: "⠺", x: "⠭",
     y: "⠽", z: "⠵", " ":" ",
+    "1": "⠼⠁", "2": "⠼⠃", "3": "⠼⠉", "4": "⠼⠙", "5": "⠼⠑",
+    "6": "⠼⠋", "7": "⠼⠛", "8": "⠼⠓", "9": "⠼⠊", "0": "⠼⠚",
+    "+": "⠐⠖", "-": "⠤", "*": "⠐⠦", "/": "⠸⠌", "=": "⠐⠶",
+    ".": "⠲", ",": "⠂", "?": "⠦", "!": "⠖", "'": "⠄", '"': "⠐⠄",
   }
 
   const handleTextInput = (text: string) => {
@@ -38,20 +42,24 @@ export default function BrailleKeyboardPage() {
       })
     }
     
-    // El Arduino envía letras ASCII, convertirlas a símbolos Braille
-    const textLower = text.toLowerCase()
-    const brailleChar = letterToBraille[textLower] || text
-    setInputText((prev) => prev + brailleChar)
+    // Verificar si ya es un símbolo Braille Unicode (el Arduino lo envía primero)
+    const isBrailleChar = /[⠀-⣿]/.test(text)
     
-    // Traducir automáticamente a español
-    const spanishMap: { [key: string]: string } = {
-      "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
-      "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
-      "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
-      "⠽": "y", "⠵": "z", " ":" ",
+    if (isBrailleChar) {
+      // Es un símbolo Braille, agregarlo directamente
+      setInputText((prev) => prev + text)
+      
+      // Traducir a español
+      const spanishMap: { [key: string]: string } = {
+        "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
+        "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
+        "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
+        "⠽": "y", "⠵": "z", " ":" ", "⠲": ".", "⠂": ",", "⠦": "?", "⠖": "!",
+      }
+      const spanishChar = spanishMap[text] || "?"
+      setOutputText((prev) => prev + spanishChar)
     }
-    const spanishChar = spanishMap[brailleChar] || text
-    setOutputText((prev) => prev + spanishChar)
+    // Ignorar las letras ASCII que vienen después del símbolo Braille
   }
   
   const handleVoice = () => {

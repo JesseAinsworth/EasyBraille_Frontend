@@ -112,11 +112,12 @@ export function BrailleKeyboard({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key.length === 1 &&
-        /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()'" /]/.test(event.key)
-      ) {
-        const key = event.key.toLowerCase()
+      // Detectar símbolos Braille Unicode (U+2800-U+28FF)
+      const isBrailleChar = /[⠀-⣿]/.test(event.key)
+      
+      if (isBrailleChar) {
+        // Es un símbolo Braille
+        const key = event.key
         setLastKey(key)
 
         setDetectedKeys((prev) => {
@@ -127,6 +128,14 @@ export function BrailleKeyboard({
         onTextInput(key)
         logKeyboardAction(key, "char")
         setIsConnected(true)
+      } else if (
+        event.key.length === 1 &&
+        /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()'"/]/.test(event.key)
+      ) {
+        // Ignorar letras ASCII normales cuando vienen del teclado Braille
+        // (el Arduino envía primero el símbolo Braille y luego la letra)
+        // No hacer nada aquí para evitar duplicados
+        return
       } else if (event.key === "Backspace") {
         setLastKey("⌫")
         if (onBackspace) {
