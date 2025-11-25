@@ -143,7 +143,6 @@ export default function BrailleKeyboardPage() {
                       setInputText((prev) => prev + " ")
                       setOutputText((prev) => prev + " ")
                     }}
-                    onVoice={handleVoice}
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
