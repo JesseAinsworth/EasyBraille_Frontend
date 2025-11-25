@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Card,
   CardContent,
@@ -21,11 +21,8 @@ interface BrailleKeyboardProps {
   onTextInput: (text: string) => void
   onBackspace?: () => void
   onSpace?: () => void
-  onOpenPage?: () => void
-  onVoice?: () => void
 }
 
-// Mapeo de teclas a códigos Braille (simplificado)
 const keyToBrailleCode: Record<string, string> = {
   a: "100000",
   b: "110000",
@@ -59,8 +56,6 @@ export function BrailleKeyboard({
   onTextInput,
   onBackspace,
   onSpace,
-  onOpenPage,
-  onVoice,
 }: BrailleKeyboardProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [lastKey, setLastKey] = useState<string | null>(null)
@@ -68,7 +63,17 @@ export function BrailleKeyboard({
   const [deviceId, setDeviceId] = useState<string>("")
   const { toast } = useToast()
 
-  // Generar un ID de dispositivo único al cargar el componente
+  const [lastPressTime, setLastPressTime] = useState(0)
+  const DEBOUNCE_TIME = 120
+
+  const [textBuffer, setTextBuffer] = useState<string>("")
+  const textBufferRef = useRef(textBuffer)
+  textBufferRef.current = textBuffer
+
+  const [port, setPort] = useState<any>(null)
+  const readerRef = useRef<any>(null)
+  const keepReadingRef = useRef<boolean>(false)
+
   useEffect(() => {
     const storedDeviceId = localStorage.getItem("brailleKeyboardDeviceId")
     if (storedDeviceId) {
@@ -81,11 +86,19 @@ export function BrailleKeyboard({
       setDeviceId(newDeviceId)
     }
   }, [])
+  useEffect(() => {
+  const authorized = localStorage.getItem("serialAuthorized")
 
-  // Función para registrar una acción del teclado
+  if (authorized === "yes") {
+    // 🔥 Intento de conexión automática
+    connectSerial(true)
+  }
+}, [])
+
+
   const logKeyboardAction = async (
     character: string,
-    actionType: "char" | "space" | "backspace" | "openApp" | "voice"
+    actionType: "char" | "space" | "backspace" | "voice"
   ) => {
     try {
       const brailleCode = keyToBrailleCode[character] || "000000"
@@ -106,64 +119,223 @@ export function BrailleKeyboard({
         }),
       })
     } catch (error) {
-      console.error("Error al registrar acción del teclado:", error)
+      console.error("Error al registrar acción:", error)
     }
   }
 
+  // -------------------------------
+  // 🔊 FUNCIÓN DE VOZ
+  // -------------------------------
+  const speak = (text: string) => {
+    if (!("speechSynthesis" in window)) {
+      toast({
+        title: "Voz no soportada",
+        description: "Tu navegador no soporta lectura por voz.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.lang = "es-MX"
+    utter.rate = 1
+    utter.pitch = 1
+
+    speechSynthesis.cancel()
+    speechSynthesis.speak(utter)
+  }
+
+  // -------------------------------
+  // 🔌 CONECTAR SERIAL
+  // -------------------------------
+const connectSerial = async (auto = false) => {
+  try {
+    if (!("serial" in navigator)) {
+      toast({
+        title: "Web Serial no soportado",
+        description: "Tu navegador no soporta Web Serial.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    let requestedPort = null
+
+    // 🔵 AUTO-CONEXIÓN: usar puertos previamente autorizados
+    if (auto) {
+      const ports = await (navigator as any).serial.getPorts()
+      if (ports.length > 0) {
+        requestedPort = ports[0]
+        console.log("Reconexión automática exitosa")
+      } else {
+        console.log("No hay puertos autorizados aún → mostrar botón")
+        return
+      }
+    }
+
+    // 🔵 PRIMERA VEZ: requiere click del usuario
+    if (!requestedPort) {
+      requestedPort = await (navigator as any).serial.requestPort()
+    }
+
+    await requestedPort.open({ baudRate: 9600 })
+
+    setPort(requestedPort)
+    setIsConnected(true)
+    toast({ title: auto ? "Arduino reconectado" : "Arduino conectado" })
+
+    startReading(requestedPort)
+
+    // Guardamos bandera de permiso concedido
+    localStorage.setItem("serialAuthorized", "yes")
+
+  } catch (err) {
+    console.error("Error al conectar:", err)
+  }
+}
+
+  // -------------------------------
+  // 🔌 DESCONECTAR SERIAL
+  // -------------------------------
+  const disconnectSerial = async () => {
+    try {
+      keepReadingRef.current = false
+
+      if (readerRef.current) {
+        try {
+          await readerRef.current.cancel()
+        } catch {}
+        readerRef.current = null
+      }
+
+      if (port) {
+        await port.close()
+        setPort(null)
+      }
+
+      setIsConnected(false)
+      toast({ title: "Puerto serial desconectado" })
+    } catch (err) {
+      console.error("Error al desconectar Serial:", err)
+    }
+  }
+
+  // -------------------------------
+  // 🔥 LECTURA SERIAL ARREGLADA
+  // -------------------------------
+  const startReading = async (thePort: any) => {
+    console.log("Iniciando lectura…")
+
+    keepReadingRef.current = true
+
+    const reader = thePort.readable.getReader()
+    readerRef.current = reader
+
+    let buffer = ""
+
+    try {
+      while (keepReadingRef.current) {
+        const { value, done } = await reader.read()
+
+        if (done) break
+        if (!value) continue
+
+        const text = new TextDecoder().decode(value)
+        console.log("Raw recibido:", text)
+
+        buffer += text
+
+        let lines = buffer.split(/\r?\n/)
+        buffer = lines.pop() || ""
+
+        for (let line of lines) {
+          const clean = line.replace(/\0/g, "").trim()
+
+          if (!clean) continue
+
+          console.log("Línea procesada:", clean)
+
+          if (clean.toUpperCase() === "LEER") {
+            console.log(">>> Arduino pidió LEER")
+
+            const toRead = textBufferRef.current.trim()
+
+            if (toRead.length === 0) speak("No hay texto para leer")
+            else speak(toRead)
+
+            logKeyboardAction("LEER", "voice")
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error leyendo Serial:", err)
+    } finally {
+      try {
+        reader.releaseLock()
+      } catch {}
+    }
+  }
+
+  // -------------------------------
+  // ⌨ CAPTURA TECLADO
+  // -------------------------------
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat) return
+
+      const now = Date.now()
+      if (now - lastPressTime < DEBOUNCE_TIME) return
+      setLastPressTime(now)
+
       if (
         event.key.length === 1 &&
         /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()'"/\+\*\/\=]/.test(event.key)
       ) {
         const key = event.key.toLowerCase()
         setLastKey(key)
+        setDetectedKeys((p) => [...p, key].slice(-10))
 
-        setDetectedKeys((prev) => {
-          const newKeys = [...prev, key]
-          return newKeys.length > 10 ? newKeys.slice(-10) : newKeys
-        })
-
+        setTextBuffer((prev) => prev + key)
         onTextInput(key)
         logKeyboardAction(key, "char")
-        setIsConnected(true)
       } else if (event.key === "Backspace") {
         setLastKey("⌫")
-        if (onBackspace) {
-          onBackspace()
-        } else {
-          onTextInput("\b")
-        }
+        setTextBuffer((prev) => prev.slice(0, -1))
+        onBackspace?.()
         logKeyboardAction("backspace", "backspace")
-        setIsConnected(true)
       } else if (event.key === " ") {
         setLastKey("␣")
-        if (onSpace) {
-          onSpace()
-        } else {
-          onTextInput(" ")
-        }
+        setTextBuffer((prev) => prev + " ")
+        onSpace?.()
         logKeyboardAction(" ", "space")
-        setIsConnected(true)
       } else if (event.key === "Enter") {
-        setLastKey("⏎")
-        if (onVoice) onVoice()
-        logKeyboardAction("enter", "voice")
-        setIsConnected(true)
+        const toRead = textBufferRef.current.trim()
+        if (toRead.length === 0) speak("No hay texto para leer")
+        else speak(toRead)
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [onTextInput, onBackspace, onSpace, onOpenPage, onVoice, deviceId])
+  }, [onTextInput, onBackspace, onSpace, lastPressTime])
 
-  // Simular desconexión después de 5 segundos sin actividad
   useEffect(() => {
-    if (isConnected) {
-      const timer = setTimeout(() => setIsConnected(false), 5000)
-      return () => clearTimeout(timer)
+    return () => {
+      keepReadingRef.current = false
+
+      if (readerRef.current) {
+        try {
+          readerRef.current.cancel()
+        } catch {}
+      }
+
+      if (port) {
+        try {
+          port.close()
+        } catch {}
+      }
     }
-  }, [isConnected, lastKey])
+  }, [])
 
   return (
     <Card>
@@ -175,7 +347,7 @@ export function BrailleKeyboard({
               Teclado Braille
             </CardTitle>
             <CardDescription>
-              Conecta tu teclado Braille Arduino para escribir directamente
+              Escribe con tu teclado físico o conecta tu Arduino por Serial para activar la lectura.
             </CardDescription>
           </div>
           <Badge variant={isConnected ? "default" : "outline"}>
@@ -183,29 +355,26 @@ export function BrailleKeyboard({
           </Badge>
         </div>
       </CardHeader>
+
       <CardContent>
         <div className="space-y-4">
-          {/* Última tecla detectada */}
           <div className="bg-muted p-3 rounded-md min-h-[60px] flex items-center justify-center">
             {lastKey ? (
               <div className="text-4xl font-mono">{lastKey}</div>
             ) : (
               <div className="text-muted-foreground text-sm flex items-center gap-2">
                 <Info className="h-4 w-4" />
-                Presiona una tecla en tu teclado Braille para comenzar
+                Presiona una tecla para comenzar.
               </div>
             )}
           </div>
 
-          {/* Últimas teclas */}
           {detectedKeys.length > 0 && (
             <div>
-              <p className="text-sm font-medium mb-2">
-                Últimas teclas detectadas:
-              </p>
+              <p className="text-sm font-medium mb-2">Últimas teclas detectadas:</p>
               <div className="flex flex-wrap gap-2">
-                {detectedKeys.map((key, index) => (
-                  <Badge key={index} variant="secondary">
+                {detectedKeys.map((key, i) => (
+                  <Badge key={i} variant="secondary">
                     {key === " " ? "␣" : key}
                   </Badge>
                 ))}
@@ -213,16 +382,17 @@ export function BrailleKeyboard({
             </div>
           )}
 
-          {/* Texto informativo */}
-          <div className="text-sm text-muted-foreground">
-            <p className="flex items-center gap-1">
-              <Info className="h-4 w-4" />
-              Tu teclado Braille envía letras individuales que son detectadas automáticamente.
-            </p>
-          </div>
+          <div className="flex gap-2">
+            {!isConnected && localStorage.getItem("serialAuthorized") !== "yes" && (
+  <Button
+    variant="outline"
+    onClick={() => connectSerial(false)}
+  >
+    Conectar Arduino (Primera vez)
+  </Button>
+)}
 
-          {/* ✅ Botón de redirección */}
-          <div className="pt-4">
+
             <Button
               variant="default"
               onClick={() => (window.location.href = "https://www.easy-braille.com/")}
