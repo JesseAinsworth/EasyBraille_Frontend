@@ -86,15 +86,14 @@ export function BrailleKeyboard({
       setDeviceId(newDeviceId)
     }
   }, [])
-  
   useEffect(() => {
-    const authorized = localStorage.getItem("serialAuthorized")
+  const authorized = localStorage.getItem("serialAuthorized")
 
-    if (authorized === "yes") {
-      // 🔥 Intento de conexión automática
-      connectSerial(true)
-    }
-  }, [])
+  if (authorized === "yes") {
+    // 🔥 Intento de conexión automática
+    connectSerial(true)
+  }
+}, [])
 
 
   const logKeyboardAction = async (
@@ -149,51 +148,51 @@ export function BrailleKeyboard({
   // -------------------------------
   // 🔌 CONECTAR SERIAL
   // -------------------------------
-  const connectSerial = async (auto = false) => {
-    try {
-      if (!("serial" in navigator)) {
-        toast({
-          title: "Web Serial no soportado",
-          description: "Tu navegador no soporta Web Serial.",
-          variant: "destructive",
-        })
+const connectSerial = async (auto = false) => {
+  try {
+    if (!("serial" in navigator)) {
+      toast({
+        title: "Web Serial no soportado",
+        description: "Tu navegador no soporta Web Serial.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    let requestedPort = null
+
+    // 🔵 AUTO-CONEXIÓN: usar puertos previamente autorizados
+    if (auto) {
+      const ports = await (navigator as any).serial.getPorts()
+      if (ports.length > 0) {
+        requestedPort = ports[0]
+        console.log("Reconexión automática exitosa")
+      } else {
+        console.log("No hay puertos autorizados aún → mostrar botón")
         return
       }
-
-      let requestedPort = null
-
-      // 🔵 AUTO-CONEXIÓN: usar puertos previamente autorizados
-      if (auto) {
-        const ports = await (navigator as any).serial.getPorts()
-        if (ports.length > 0) {
-          requestedPort = ports[0]
-          console.log("Reconexión automática exitosa")
-        } else {
-          console.log("No hay puertos autorizados aún → mostrar botón")
-          return
-        }
-      }
-
-      // 🔵 PRIMERA VEZ: requiere click del usuario
-      if (!requestedPort) {
-        requestedPort = await (navigator as any).serial.requestPort()
-      }
-
-      await requestedPort.open({ baudRate: 9600 })
-
-      setPort(requestedPort)
-      setIsConnected(true)
-      toast({ title: auto ? "Arduino reconectado" : "Arduino conectado" })
-
-      startReading(requestedPort)
-
-      // Guardamos bandera de permiso concedido
-      localStorage.setItem("serialAuthorized", "yes")
-
-    } catch (err) {
-      console.error("Error al conectar:", err)
     }
+
+    // 🔵 PRIMERA VEZ: requiere click del usuario
+    if (!requestedPort) {
+      requestedPort = await (navigator as any).serial.requestPort()
+    }
+
+    await requestedPort.open({ baudRate: 9600 })
+
+    setPort(requestedPort)
+    setIsConnected(true)
+    toast({ title: auto ? "Arduino reconectado" : "Arduino conectado" })
+
+    startReading(requestedPort)
+
+    // Guardamos bandera de permiso concedido
+    localStorage.setItem("serialAuthorized", "yes")
+
+  } catch (err) {
+    console.error("Error al conectar:", err)
   }
+}
 
   // -------------------------------
   // 🔌 DESCONECTAR SERIAL
@@ -385,13 +384,14 @@ export function BrailleKeyboard({
 
           <div className="flex gap-2">
             {!isConnected && localStorage.getItem("serialAuthorized") !== "yes" && (
-              <Button
-                variant="outline"
-                onClick={() => connectSerial(false)}
-              >
-                Conectar Arduino (Primera vez)
-              </Button>
-            )}
+  <Button
+    variant="outline"
+    onClick={() => connectSerial(false)}
+  >
+    Conectar Arduino (Primera vez)
+  </Button>
+)}
+
 
             <Button
               variant="default"
