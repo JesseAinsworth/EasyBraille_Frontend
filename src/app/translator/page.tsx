@@ -467,7 +467,6 @@ export default function TranslatorPage() {
                     onTextInput={handleBrailleKeyInput}
                     onBackspace={() => setInputText((prev) => prev.slice(0, -1))}
                     onSpace={() => setInputText((prev) => prev + " ")}
-                    onVoice={() => handleTextToSpeech()}
                   />
                 </div>
               )}
@@ -513,7 +512,6 @@ export default function TranslatorPage() {
                 onTextInput={handleBrailleKeyInput}
                 onBackspace={() => setInputText((prev) => prev.slice(0, -1))}
                 onSpace={() => setInputText((prev) => prev + " ")}
-                onVoice={() => handleTextToSpeech()}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
