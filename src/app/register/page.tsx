@@ -89,7 +89,9 @@ export default function RegisterPage() {
       })
 
       // Usar window.location para forzar recarga completa con el usuario guardado
-      window.location.href = "/translator"
+      if (typeof window !== 'undefined') {
+        window.location.href = "/translator"
+      }
     } catch (error: any) {
       console.error("Error de registro:", error)
       

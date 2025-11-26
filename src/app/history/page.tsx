@@ -30,6 +30,8 @@ export default function HistoryPage() {
 
   useEffect(() => {
     // Verificar autenticación
+    if (typeof window === 'undefined') return
+    
     const storedUser = localStorage.getItem("user")
     if (!storedUser) {
       router.push("/login")
@@ -67,6 +69,8 @@ export default function HistoryPage() {
   const fetchTranslations = async () => {
     try {
       // Get userId from localStorage
+      if (typeof window === 'undefined') return
+      
       const storedUser = localStorage.getItem("user")
       if (!storedUser) {
         throw new Error("Usuario no autenticado")

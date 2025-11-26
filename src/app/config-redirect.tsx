@@ -8,6 +8,8 @@ export default function ConfigRedirect() {
 
   useEffect(() => {
     // Verificar si el usuario está autenticado
+    if (typeof window === 'undefined') return
+    
     const userData = localStorage.getItem("user")
     const token = localStorage.getItem("token")
     

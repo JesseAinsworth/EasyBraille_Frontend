@@ -16,6 +16,8 @@ export function useAuth() {
 
   useEffect(() => {
     const loadUser = () => {
+      if (typeof window === 'undefined') return
+      
       try {
         const storedUser = localStorage.getItem("user")
         const token = localStorage.getItem("token")
@@ -54,17 +56,23 @@ export function useAuth() {
       loadUser()
     }
 
-    window.addEventListener("storage", handleStorageChange)
-    window.addEventListener("auth-change", handleAuthChange)
+    if (typeof window !== 'undefined') {
+      window.addEventListener("storage", handleStorageChange)
+      window.addEventListener("auth-change", handleAuthChange)
+    }
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      window.removeEventListener("auth-change", handleAuthChange)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener("storage", handleStorageChange)
+        window.removeEventListener("auth-change", handleAuthChange)
+      }
     }
   }, [])
 
   // ✅ Login: guarda usuario y token
   const login = (userData: User, token: string) => {
+    if (typeof window === 'undefined') return
+    
     console.log("🔐 useAuth.login - Guardando usuario:", userData)
     
     localStorage.setItem("user", JSON.stringify(userData))
@@ -82,6 +90,8 @@ export function useAuth() {
 
   // ✅ Logout: limpia sesión
   const logout = () => {
+    if (typeof window === 'undefined') return
+    
     localStorage.removeItem("user")
     localStorage.removeItem("token")
     setUser(null)

@@ -12,6 +12,8 @@ export default function DebugAuthPage() {
 
   useEffect(() => {
     // Get user data and token from localStorage
+    if (typeof window === 'undefined') return
+    
     const storedUser = localStorage.getItem("user")
     const storedToken = localStorage.getItem("token")
 
@@ -28,6 +30,8 @@ export default function DebugAuthPage() {
   }, [])
 
   const handleClearStorage = () => {
+    if (typeof window === 'undefined') return
+    
     localStorage.removeItem("user")
     localStorage.removeItem("token")
     setUserData(null)
@@ -35,6 +39,8 @@ export default function DebugAuthPage() {
   }
 
   const handleResetAdmin = () => {
+    if (typeof window === 'undefined') return
+    
     const adminUser = {
       _id: "1",
       id: "1",

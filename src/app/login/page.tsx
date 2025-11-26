@@ -77,16 +77,18 @@ export default function LoginPage() {
       })
 
       // Usar window.location para forzar recarga completa con el usuario guardado
-      const urlParams = new URLSearchParams(window.location.search)
-      const redirectTo = urlParams.get("redirectTo")
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search)
+        const redirectTo = urlParams.get("redirectTo")
 
-      if (redirectTo) {
-        window.location.href = redirectTo
-      } else {
-        if (data.user.role === "admin") {
-          window.location.href = "/admin"
+        if (redirectTo) {
+          window.location.href = redirectTo
         } else {
-          window.location.href = "/translator"
+          if (data.user.role === "admin") {
+            window.location.href = "/admin"
+          } else {
+            window.location.href = "/translator"
+          }
         }
       }
     } catch (error: any) {
