@@ -17,21 +17,45 @@ export async function POST(request: NextRequest) {
     const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
     
     console.log("📤 Enviando imagen a AI API:", aiApiUrl)
+    console.log("📦 Tamaño de imagen:", imageFile.size, "bytes")
     
-    const aiResponse = await fetch(`${aiApiUrl}/predict`, {
-      method: "POST",
-      body, // Sin headers manuales - FormData establece el boundary automáticamente
-    })
+    // Timeout más largo para cold starts de Render (60 segundos)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 60000)
+    
+    try {
+      const aiResponse = await fetch(`${aiApiUrl}/predict`, {
+        method: "POST",
+        body,
+        signal: controller.signal,
+      })
 
-    if (!aiResponse.ok) {
-      throw new Error(`AI API respondió con status ${aiResponse.status}`)
+      clearTimeout(timeoutId)
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text()
+        console.error("❌ AI API error response:", errorText)
+        throw new Error(`AI API respondió con status ${aiResponse.status}: ${errorText}`)
+      }
+
+      const data = await aiResponse.json()
+      
+      console.log("📥 Respuesta de AI API:", data)
+      
+      return NextResponse.json(data)
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId)
+      
+      if (fetchError.name === 'AbortError') {
+        console.error("⏱️ Timeout: La API de IA tardó más de 60 segundos")
+        return NextResponse.json({ 
+          error: "La API de IA está tardando mucho. Puede estar iniciándose (cold start). Intenta nuevamente en 10 segundos.", 
+          details: "Timeout después de 60 segundos"
+        }, { status: 504 })
+      }
+      
+      throw fetchError
     }
-
-    const data = await aiResponse.json()
-    
-    console.log("📥 Respuesta de AI API:", data)
-    
-    return NextResponse.json(data)
   } catch (error: any) {
     console.error("❌ Error al procesar imagen con AI:", error)
     return NextResponse.json({ 

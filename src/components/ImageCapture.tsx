@@ -84,8 +84,13 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       formData.append("image", file)
 
       // Use frontend API route which proxies to AI API
+      toast({ title: "Procesando", description: "Enviando imagen a la IA... Esto puede tardar hasta 60 segundos si el servidor está iniciándose." })
+      
       const response = await fetch('/api/braille-image', { method: "POST", body: formData })
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.details || errorData.error || `HTTP error! status: ${response.status}`)
+      }
       const data = await response.json()
       if (data.error) throw new Error(data.error)
 
@@ -113,8 +118,13 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       formData.append("image", file)
 
       // Use frontend API route which proxies to AI API
+      toast({ title: "Procesando", description: "Enviando imagen a la IA... Esto puede tardar hasta 60 segundos si el servidor está iniciándose." })
+      
       const apiResponse = await fetch('/api/braille-image', { method: "POST", body: formData })
-      if (!apiResponse.ok) throw new Error(`HTTP error! status: ${apiResponse.status}`)
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json()
+        throw new Error(errorData.details || errorData.error || `HTTP error! status: ${apiResponse.status}`)
+      }
       const data = await apiResponse.json()
       if (data.error) throw new Error(data.error)
 
