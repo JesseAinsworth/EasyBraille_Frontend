@@ -25,6 +25,63 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
+  // --- Preprocesamiento de imagen para mejorar precisión ---
+  const preprocessImage = (imageDataUrl: string): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const ctx = canvas.getContext("2d")!
+        
+        // Mantener resolución alta para detalles de braille
+        const maxDimension = 1920
+        let width = img.width
+        let height = img.height
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension
+            width = maxDimension
+          } else {
+            width = (width / height) * maxDimension
+            height = maxDimension
+          }
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // Aplicar mejoras de contraste
+        ctx.drawImage(img, 0, 0, width, height)
+        
+        const imageData = ctx.getImageData(0, 0, width, height)
+        const data = imageData.data
+        
+        // Aumentar contraste y nitidez
+        for (let i = 0; i < data.length; i += 4) {
+          // Convertir a escala de grises
+          const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114
+          
+          // Aumentar contraste
+          const contrast = 1.5
+          const adjusted = ((gray - 128) * contrast) + 128
+          
+          data[i] = adjusted     // R
+          data[i + 1] = adjusted // G
+          data[i + 2] = adjusted // B
+        }
+        
+        ctx.putImageData(imageData, 0, 0)
+        
+        // Exportar con alta calidad
+        canvas.toBlob((blob) => {
+          resolve(blob!)
+        }, "image/jpeg", 0.95)
+      }
+      img.src = imageDataUrl
+    })
+  }
+
   // --- Cámara ---
   const startCamera = async () => {
     try {
@@ -80,31 +137,39 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
   const processImageFromFile = async (file: File) => {
     setIsProcessing(true)
     try {
-      const formData = new FormData()
-      formData.append("image", file)
+      // Preprocesar imagen para mejorar calidad
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target?.result as string
+        const processedBlob = await preprocessImage(imageDataUrl)
+        
+        const formData = new FormData()
+        formData.append("image", processedBlob, "image.jpg")
 
-      // 🤖 Llamar directamente a la API de IA (sin proxy para evitar timeout de Amplify)
-      const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
-      
-      toast({ title: "Procesando", description: "Enviando imagen a la IA... Esto puede tardar hasta 60 segundos si el servidor está iniciándose." })
-      
-      const response = await fetch(`${aiApiUrl}/predict`, { 
-        method: "POST", 
-        body: formData,
-        mode: 'cors' // Asegurar CORS
-      })
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
-        throw new Error(errorData.details || errorData.error || `HTTP error! status: ${response.status}`)
+        // 🤖 Llamar directamente a la API de IA (sin proxy para evitar timeout de Amplify)
+        const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
+        
+        toast({ title: "Procesando", description: "Mejorando imagen y enviando a la IA..." })
+        
+        const response = await fetch(`${aiApiUrl}/predict`, { 
+          method: "POST", 
+          body: formData,
+          mode: 'cors'
+        })
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
+          throw new Error(errorData.details || errorData.error || `HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        if (data.error) throw new Error(data.error)
+
+        // AI API returns 'texto' or 'text' field
+        const detectedBrailleText = data.texto || data.text || data.predicted_text || ""
+        setDetectedText(detectedBrailleText)
+        onTextDetected(detectedBrailleText)
+        toast({ title: "Imagen procesada", description: "Texto detectado exitosamente." })
       }
-      const data = await response.json()
-      if (data.error) throw new Error(data.error)
-
-      // AI API returns 'texto' or 'text' field
-      const detectedBrailleText = data.texto || data.text || data.predicted_text || ""
-      setDetectedText(detectedBrailleText)
-      onTextDetected(detectedBrailleText)
-      toast({ title: "Imagen procesada", description: "Texto detectado exitosamente." })
+      reader.readAsDataURL(file)
     } catch (error) {
       console.error("Error processing image:", error)
       toast({ title: "Error", description: `No se pudo procesar la imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`, variant: "destructive" })
@@ -116,9 +181,9 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
   const processImage = async (imageDataUrl: string) => {
     setIsProcessing(true)
     try {
-      const response = await fetch(imageDataUrl)
-      const blob = await response.blob()
-      const file = new File([blob], "captured-image.jpg", { type: "image/jpeg" })
+      // Preprocesar imagen para mejorar calidad
+      const processedBlob = await preprocessImage(imageDataUrl)
+      const file = new File([processedBlob], "captured-image.jpg", { type: "image/jpeg" })
 
       const formData = new FormData()
       formData.append("image", file)
@@ -126,12 +191,12 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       // 🤖 Llamar directamente a la API de IA (sin proxy para evitar timeout de Amplify)
       const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
       
-      toast({ title: "Procesando", description: "Enviando imagen a la IA... Esto puede tardar hasta 60 segundos si el servidor está iniciándose." })
+      toast({ title: "Procesando", description: "Mejorando imagen y enviando a la IA..." })
       
       const apiResponse = await fetch(`${aiApiUrl}/predict`, { 
         method: "POST", 
         body: formData,
-        mode: 'cors' // Asegurar CORS
+        mode: 'cors'
       })
       if (!apiResponse.ok) {
         const errorData = await apiResponse.json().catch(() => ({ error: 'Error desconocido' }))
