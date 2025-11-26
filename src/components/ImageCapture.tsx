@@ -83,12 +83,18 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       const formData = new FormData()
       formData.append("image", file)
 
-      // Use frontend API route which proxies to AI API
+      // 🤖 Llamar directamente a la API de IA (sin proxy para evitar timeout de Amplify)
+      const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
+      
       toast({ title: "Procesando", description: "Enviando imagen a la IA... Esto puede tardar hasta 60 segundos si el servidor está iniciándose." })
       
-      const response = await fetch('/api/braille-image', { method: "POST", body: formData })
+      const response = await fetch(`${aiApiUrl}/predict`, { 
+        method: "POST", 
+        body: formData,
+        mode: 'cors' // Asegurar CORS
+      })
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
         throw new Error(errorData.details || errorData.error || `HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
@@ -117,12 +123,18 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       const formData = new FormData()
       formData.append("image", file)
 
-      // Use frontend API route which proxies to AI API
+      // 🤖 Llamar directamente a la API de IA (sin proxy para evitar timeout de Amplify)
+      const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
+      
       toast({ title: "Procesando", description: "Enviando imagen a la IA... Esto puede tardar hasta 60 segundos si el servidor está iniciándose." })
       
-      const apiResponse = await fetch('/api/braille-image', { method: "POST", body: formData })
+      const apiResponse = await fetch(`${aiApiUrl}/predict`, { 
+        method: "POST", 
+        body: formData,
+        mode: 'cors' // Asegurar CORS
+      })
       if (!apiResponse.ok) {
-        const errorData = await apiResponse.json()
+        const errorData = await apiResponse.json().catch(() => ({ error: 'Error desconocido' }))
         throw new Error(errorData.details || errorData.error || `HTTP error! status: ${apiResponse.status}`)
       }
       const data = await apiResponse.json()
