@@ -92,11 +92,14 @@ export function BrailleKeyboard({
   // 🔄 Intento de reconexión automática
   // ------------------------------------------
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    
     const authorized = localStorage.getItem("serialAuthorized")
     if (authorized === "yes") {
       connectSerial(true)
     }
   }, [])
+
 
   // ------------------------------------------
   // 📌 Registro de acciones en backend
@@ -364,12 +367,11 @@ export function BrailleKeyboard({
           )}
 
           <div className="flex gap-2 flex-wrap">
-            {!isConnected &&
-              localStorage.getItem("serialAuthorized") !== "yes" && (
-                <Button variant="outline" onClick={() => connectSerial(false)}>
-                  Conectar Arduino (Primera vez)
-                </Button>
-              )}
+            {!isConnected && typeof window !== 'undefined' && localStorage.getItem("serialAuthorized") !== "yes" && (
+              <Button variant="outline" onClick={() => connectSerial(false)}>
+                Conectar Arduino (Primera vez)
+              </Button>
+            )}
 
             {isConnected && (
               <Button variant="destructive" onClick={disconnectSerial}>

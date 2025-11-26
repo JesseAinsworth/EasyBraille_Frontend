@@ -13,17 +13,30 @@ export async function POST(request: NextRequest) {
     const body = new FormData()
     body.append("image", imageFile, imageFile.name)
 
-    // For braille image detection, we use the Railway backend specifically
-    const railwayBackendUrl = process.env.NEXT_PUBLIC_RAILWAY_BACKEND_URL || "https://easybraillebackend-production.up.railway.app"
-    const flaskResponse = await fetch(`${railwayBackendUrl}`, {
+    // 🤖 Usar la nueva API de IA en Render para detección de Braille
+    const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
+    
+    console.log("📤 Enviando imagen a AI API:", aiApiUrl)
+    
+    const aiResponse = await fetch(`${aiApiUrl}/predict`, {
       method: "POST",
-      body, // Sin headers manuales
+      body, // Sin headers manuales - FormData establece el boundary automáticamente
     })
 
-    const data = await flaskResponse.json()
+    if (!aiResponse.ok) {
+      throw new Error(`AI API respondió con status ${aiResponse.status}`)
+    }
+
+    const data = await aiResponse.json()
+    
+    console.log("📥 Respuesta de AI API:", data)
+    
     return NextResponse.json(data)
   } catch (error: any) {
-    console.error("Error al enviar imagen a Flask:", error)
-    return NextResponse.json({ error: "Error interno" }, { status: 500 })
+    console.error("❌ Error al procesar imagen con AI:", error)
+    return NextResponse.json({ 
+      error: "Error al procesar la imagen", 
+      details: error.message 
+    }, { status: 500 })
   }
 }
