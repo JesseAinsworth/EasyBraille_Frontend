@@ -3,6 +3,9 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://easybraillebackend-production.up.railway.app'
 
 const nextConfig = {
+  // Enable standalone output for AWS Amplify
+  output: 'standalone',
+  
   // Vercel deployment optimizations
   poweredByHeader: false,
   
