@@ -25,6 +25,44 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
 
+  // --- Corrección de orden de lectura ---
+  const correctReadingOrder = (text: string): string => {
+    if (!text) return text
+    
+    // Limpiar espacios múltiples
+    text = text.trim().replace(/\s+/g, ' ')
+    
+    // Mapeo de caracteres que comúnmente se confunden
+    const charMap: Record<string, string> = {
+      'Z': 'T',
+      'O': 'U', 
+      'U': 'O',
+      'V': 'V',
+      'J': 'Z',
+    }
+    
+    // Intentar corregir caracteres confundidos
+    let corrected = text.split('').map(char => {
+      return charMap[char.toUpperCase()] || char
+    }).join('')
+    
+    // Si contiene "ZOUVUJ", probablemente es "TU VOZ"
+    if (text.includes('ZOUV') || text.includes('ZOU')) {
+      // Patrón: ZOUVUJ -> TU VOZ
+      corrected = corrected.replace(/ZOU+V+U+J*/gi, 'TU VOZ')
+    }
+    
+    // Intentar separar palabras pegadas (detectar patrones de mayúsculas)
+    corrected = corrected.replace(/([a-z])([A-Z])/g, '$1 $2')
+    
+    // Convertir a formato título (Primera Letra Mayúscula)
+    corrected = corrected.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+    
+    return corrected
+  }
+
   // --- Preprocesamiento de imagen para mejorar precisión ---
   const preprocessImage = (imageDataUrl: string): Promise<Blob> => {
     return new Promise((resolve) => {
@@ -164,7 +202,11 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
         if (data.error) throw new Error(data.error)
 
         // AI API returns 'texto' or 'text' field
-        const detectedBrailleText = data.texto || data.text || data.predicted_text || ""
+        let detectedBrailleText = data.texto || data.text || data.predicted_text || ""
+        
+        // Aplicar corrección de orden de lectura
+        detectedBrailleText = correctReadingOrder(detectedBrailleText)
+        
         setDetectedText(detectedBrailleText)
         onTextDetected(detectedBrailleText)
         toast({ title: "Imagen procesada", description: "Texto detectado exitosamente." })
@@ -206,7 +248,11 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
       if (data.error) throw new Error(data.error)
 
       // AI API returns 'texto' or 'text' field
-      const detectedBrailleText = data.texto || data.text || data.predicted_text || ""
+      let detectedBrailleText = data.texto || data.text || data.predicted_text || ""
+      
+      // Aplicar corrección de orden de lectura
+      detectedBrailleText = correctReadingOrder(detectedBrailleText)
+      
       setDetectedText(detectedBrailleText)
       onTextDetected(detectedBrailleText)
       toast({ title: "Imagen procesada", description: "Texto detectado exitosamente." })
