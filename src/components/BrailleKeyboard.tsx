@@ -343,6 +343,12 @@ const connectSerial = async (auto = false) => {
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         return
       }
+      
+      // SI está conectado por Serial, NO capturar teclas del teclado físico
+      // El Arduino enviará los caracteres por Serial
+      if (isConnected) {
+        return
+      }
 
       const now = Date.now()
       if (now - lastPressTime < DEBOUNCE_TIME) return
