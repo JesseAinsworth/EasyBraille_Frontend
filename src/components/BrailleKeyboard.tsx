@@ -346,6 +346,8 @@ const connectSerial = async (auto = false) => {
         // Convertir a Braille antes de mostrar
         const brailleChar = letterToBraille[key] || key
         
+        console.log("🔵 Tecla presionada:", key, "→ Braille:", brailleChar)
+        
         setLastKey(brailleChar)
         setDetectedKeys((p) => [...p, brailleChar].slice(-10))
 

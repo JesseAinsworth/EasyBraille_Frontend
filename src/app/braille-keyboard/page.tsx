@@ -31,6 +31,8 @@ export default function BrailleKeyboardPage() {
   }
 
   const handleTextInput = (text: string) => {
+    console.log("🟢 Texto recibido en página:", text, "Tipo:", typeof text)
+    
     // Notificar conexión del teclado la primera vez
     if (!keyboardConnected) {
       setKeyboardConnected(true)
@@ -59,6 +61,7 @@ export default function BrailleKeyboardPage() {
     }
     
     const spanishChar = spanishMap[text] || text
+    console.log("🟡 Convertido a español:", spanishChar)
     setOutputText((prev) => prev + spanishChar)
   }
   
