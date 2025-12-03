@@ -323,6 +323,11 @@ export default function TranslatorPage() {
   }
 
   const handleBrailleKeyInput = (text: string) => {
+    // Filtrar caracteres no deseados como guiones bajos y apóstrofes extraños
+    const cleanText = text.replace(/[_']/g, '').trim()
+    
+    if (!cleanText) return
+    
     if (translationDirection === "frombraille") {
       const brailleMap: { [key: string]: string } = {
         a: "⠁",
@@ -353,10 +358,10 @@ export default function TranslatorPage() {
         z: "⠵",
       }
 
-      const brailleChar = brailleMap[text.toLowerCase()] || text
+      const brailleChar = brailleMap[cleanText.toLowerCase()] || cleanText
       setInputText((prev) => prev + brailleChar)
     } else {
-      setInputText((prev) => prev + text)
+      setInputText((prev) => prev + cleanText)
     }
   }
 

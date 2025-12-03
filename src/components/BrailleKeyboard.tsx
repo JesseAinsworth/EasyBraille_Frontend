@@ -326,6 +326,12 @@ const connectSerial = async (auto = false) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.repeat) return
+      
+      // NO capturar teclas si el usuario está escribiendo en un input o textarea
+      const target = event.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return
+      }
 
       const now = Date.now()
       if (now - lastPressTime < DEBOUNCE_TIME) return
@@ -333,14 +339,18 @@ const connectSerial = async (auto = false) => {
 
       if (
         event.key.length === 1 &&
-        /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()'"/\+\*\/\=]/.test(event.key)
+        /[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\.\,\!\?\:\;\-()"/\+\*\/\=]/.test(event.key)
       ) {
         const key = event.key.toLowerCase()
-        setLastKey(key)
-        setDetectedKeys((p) => [...p, key].slice(-10))
+        
+        // Convertir a Braille antes de mostrar
+        const brailleChar = letterToBraille[key] || key
+        
+        setLastKey(brailleChar)
+        setDetectedKeys((p) => [...p, brailleChar].slice(-10))
 
-        setTextBuffer((prev) => prev + key)
-        onTextInput(key)
+        setTextBuffer((prev) => prev + key) // Guardar español para lectura de voz
+        onTextInput(brailleChar) // Enviar símbolo Braille
         logKeyboardAction(key, "char")
       } else if (event.key === "Backspace") {
         setLastKey("⌫")
@@ -348,6 +358,7 @@ const connectSerial = async (auto = false) => {
         onBackspace?.()
         logKeyboardAction("backspace", "backspace")
       } else if (event.key === " ") {
+        const brailleSpace = " "
         setLastKey("␣")
         setTextBuffer((prev) => prev + " ")
         onSpace?.()
