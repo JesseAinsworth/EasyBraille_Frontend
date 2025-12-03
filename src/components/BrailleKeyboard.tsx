@@ -289,23 +289,34 @@ const connectSerial = async (auto = false) => {
             logKeyboardAction("LEER", "voice")
           } else if (clean.startsWith("Carácter detectado:")) {
             // Capturar el carácter que Arduino envió (viene en español)
-            const char = clean.replace("Carácter detectado:", "").trim().toLowerCase()
+            const char = clean.replace("Carácter detectado:", "").trim()
             
-            if (char && char !== "?") {
-              console.log(">>> Carácter recibido del Arduino:", char)
+            // Manejar BACKSPACE
+            if (char.toUpperCase() === "BACKSPACE") {
+              console.log(">>> Backspace recibido del Arduino")
+              setTextBuffer((prev) => prev.slice(0, -1))
+              onBackspace?.()
+              logKeyboardAction("backspace", "backspace")
+              return
+            }
+            
+            const charLower = char.toLowerCase()
+            
+            if (charLower && charLower !== "?") {
+              console.log(">>> Carácter recibido del Arduino:", charLower)
               
               // Convertir el carácter español a símbolo Braille
-              const brailleChar = letterToBraille[char] || char
+              const brailleChar = letterToBraille[charLower] || charLower
               
               setLastKey(brailleChar)
               setDetectedKeys((p) => [...p, brailleChar].slice(-10))
-              setTextBuffer((prev) => prev + char) // Para la lectura de voz guardamos español
+              setTextBuffer((prev) => prev + charLower) // Para la lectura de voz guardamos español
               onTextInput(brailleChar) // Pero mostramos Braille
               
-              if (char === " ") {
+              if (charLower === " ") {
                 logKeyboardAction(" ", "space")
               } else {
-                logKeyboardAction(char, "char")
+                logKeyboardAction(charLower, "char")
               }
             }
           }
