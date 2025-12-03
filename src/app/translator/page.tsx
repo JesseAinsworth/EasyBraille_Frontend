@@ -323,46 +323,11 @@ export default function TranslatorPage() {
   }
 
   const handleBrailleKeyInput = (text: string) => {
-    // Filtrar caracteres no deseados como guiones bajos y apóstrofes extraños
-    const cleanText = text.replace(/[_']/g, '').trim()
+    console.log("📝 Texto recibido en traductor:", text)
     
-    if (!cleanText) return
-    
-    if (translationDirection === "frombraille") {
-      const brailleMap: { [key: string]: string } = {
-        a: "⠁",
-        b: "⠃",
-        c: "⠉",
-        d: "⠙",
-        e: "⠑",
-        f: "⠋",
-        g: "⠛",
-        h: "⠓",
-        i: "⠊",
-        j: "⠚",
-        k: "⠅",
-        l: "⠇",
-        m: "⠍",
-        n: "⠝",
-        o: "⠕",
-        p: "⠏",
-        q: "⠟",
-        r: "⠗",
-        s: "⠎",
-        t: "⠞",
-        u: "⠥",
-        v: "⠧",
-        w: "⠺",
-        x: "⠭",
-        y: "⠽",
-        z: "⠵",
-      }
-
-      const brailleChar = brailleMap[cleanText.toLowerCase()] || cleanText
-      setInputText((prev) => prev + brailleChar)
-    } else {
-      setInputText((prev) => prev + cleanText)
-    }
+    // El componente BrailleKeyboard ya envía símbolos Braille
+    // Solo agregamos el texto directamente
+    setInputText((prev) => prev + text)
   }
 
   const handleClearText = () => {
