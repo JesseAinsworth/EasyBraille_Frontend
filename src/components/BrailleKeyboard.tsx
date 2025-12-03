@@ -52,6 +52,18 @@ const keyToBrailleCode: Record<string, string> = {
   z: "101011",
 }
 
+// Mapeo de letras a símbolos Braille Unicode
+const letterToBraille: Record<string, string> = {
+  a: "⠁", b: "⠃", c: "⠉", d: "⠙", e: "⠑", f: "⠋", g: "⠛", h: "⠓",
+  i: "⠊", j: "⠚", k: "⠅", l: "⠇", m: "⠍", n: "⠝", o: "⠕", p: "⠏",
+  q: "⠟", r: "⠗", s: "⠎", t: "⠞", u: "⠥", v: "⠧", w: "⠺", x: "⠭",
+  y: "⠽", z: "⠵", " ": " ",
+  "1": "⠼⠁", "2": "⠼⠃", "3": "⠼⠉", "4": "⠼⠙", "5": "⠼⠑",
+  "6": "⠼⠋", "7": "⠼⠛", "8": "⠼⠓", "9": "⠼⠊", "0": "⠼⠚",
+  "+": "⠐⠖", "-": "⠤", "*": "⠐⠦", "/": "⠸⠌", "=": "⠐⠶",
+  ".": "⠲", ",": "⠂", "?": "⠦", "!": "⠖", "'": "⠄", '"': "⠐⠄",
+}
+
 export function BrailleKeyboard({
   onTextInput,
   onBackspace,
@@ -276,16 +288,19 @@ const connectSerial = async (auto = false) => {
 
             logKeyboardAction("LEER", "voice")
           } else if (clean.startsWith("Carácter detectado:")) {
-            // Capturar el carácter que Arduino envió
-            const char = clean.replace("Carácter detectado:", "").trim()
+            // Capturar el carácter que Arduino envió (viene en español)
+            const char = clean.replace("Carácter detectado:", "").trim().toLowerCase()
             
             if (char && char !== "?") {
               console.log(">>> Carácter recibido del Arduino:", char)
               
-              setLastKey(char)
-              setDetectedKeys((p) => [...p, char].slice(-10))
-              setTextBuffer((prev) => prev + char)
-              onTextInput(char)
+              // Convertir el carácter español a símbolo Braille
+              const brailleChar = letterToBraille[char] || char
+              
+              setLastKey(brailleChar)
+              setDetectedKeys((p) => [...p, brailleChar].slice(-10))
+              setTextBuffer((prev) => prev + char) // Para la lectura de voz guardamos español
+              onTextInput(brailleChar) // Pero mostramos Braille
               
               if (char === " ") {
                 logKeyboardAction(" ", "space")
