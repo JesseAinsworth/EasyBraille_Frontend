@@ -75,6 +75,8 @@ export function BrailleKeyboard({
   const keepReadingRef = useRef<boolean>(false)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    
     const storedDeviceId = localStorage.getItem("brailleKeyboardDeviceId")
     if (storedDeviceId) {
       setDeviceId(storedDeviceId)
@@ -86,14 +88,17 @@ export function BrailleKeyboard({
       setDeviceId(newDeviceId)
     }
   }, [])
+  
   useEffect(() => {
-  const authorized = localStorage.getItem("serialAuthorized")
+    if (typeof window === 'undefined') return
+    
+    const authorized = localStorage.getItem("serialAuthorized")
 
-  if (authorized === "yes") {
-    // 🔥 Intento de conexión automática
-    connectSerial(true)
-  }
-}, [])
+    if (authorized === "yes") {
+      // 🔥 Intento de conexión automática
+      connectSerial(true)
+    }
+  }, [])
 
 
   const logKeyboardAction = async (
@@ -101,6 +106,8 @@ export function BrailleKeyboard({
     actionType: "char" | "space" | "backspace" | "voice"
   ) => {
     try {
+      if (typeof window === 'undefined') return
+      
       const brailleCode = keyToBrailleCode[character] || "000000"
       const token = localStorage.getItem("token")
       if (!token) return
@@ -150,12 +157,14 @@ export function BrailleKeyboard({
   // -------------------------------
 const connectSerial = async (auto = false) => {
   try {
-    if (!("serial" in navigator)) {
-      toast({
-        title: "Web Serial no soportado",
-        description: "Tu navegador no soporta Web Serial.",
-        variant: "destructive",
-      })
+    if (typeof window === 'undefined' || !("serial" in navigator)) {
+      if (typeof window !== 'undefined') {
+        toast({
+          title: "Web Serial no soportado",
+          description: "Tu navegador no soporta Web Serial.",
+          variant: "destructive",
+        })
+      }
       return
     }
 
@@ -187,7 +196,9 @@ const connectSerial = async (auto = false) => {
     startReading(requestedPort)
 
     // Guardamos bandera de permiso concedido
-    localStorage.setItem("serialAuthorized", "yes")
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("serialAuthorized", "yes")
+    }
 
   } catch (err) {
     console.error("Error al conectar:", err)
@@ -401,7 +412,7 @@ const connectSerial = async (auto = false) => {
           )}
 
           <div className="flex gap-2">
-            {!isConnected && localStorage.getItem("serialAuthorized") !== "yes" && (
+            {!isConnected && (typeof window === 'undefined' || localStorage.getItem("serialAuthorized") !== "yes") && (
   <Button
     variant="outline"
     onClick={() => connectSerial(false)}
