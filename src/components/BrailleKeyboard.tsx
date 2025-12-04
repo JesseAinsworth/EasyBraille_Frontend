@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Keyboard, Info } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Keyboard, Info, Usb, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface BrailleKeyboardProps {
@@ -46,7 +47,17 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
   const [lastKey, setLastKey] = useState<string | null>(null)
   const [detectedKeys, setDetectedKeys] = useState<string[]>([])
   const [deviceId, setDeviceId] = useState<string>("")
+  const [serialSupported, setSerialSupported] = useState(false)
+  const portRef = useRef<any | null>(null)
+  const readerRef = useRef<ReadableStreamDefaultReader | null>(null)
   const { toast } = useToast()
+
+  // Verificar soporte de Web Serial API
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serial' in navigator) {
+      setSerialSupported(true)
+    }
+  }, [])
 
   // Generar un ID de dispositivo único al cargar el componente
   useEffect(() => {
@@ -59,6 +70,120 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
       setDeviceId(newDeviceId)
     }
   }, [])
+
+  // Conectar al puerto serial
+  const connectSerial = async () => {
+    try {
+      const port = await (navigator as any).serial.requestPort()
+      await port.open({ baudRate: 9600 })
+      portRef.current = port
+
+      setIsConnected(true)
+      toast({
+        title: "Arduino conectado",
+        description: "Teclado Braille Arduino conectado exitosamente",
+      })
+
+      // Leer datos del puerto serial
+      readSerialData(port)
+    } catch (error) {
+      console.error("Error al conectar:", error)
+      toast({
+        title: "Error de conexión",
+        description: "No se pudo conectar al Arduino",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Desconectar del puerto serial
+  const disconnectSerial = async () => {
+    try {
+      if (readerRef.current) {
+        await readerRef.current.cancel()
+        readerRef.current = null
+      }
+      if (portRef.current) {
+        await portRef.current.close()
+        portRef.current = null
+      }
+      setIsConnected(false)
+      toast({
+        title: "Arduino desconectado",
+        description: "Teclado Braille Arduino desconectado",
+      })
+    } catch (error) {
+      console.error("Error al desconectar:", error)
+    }
+  }
+
+  // Leer datos del puerto serial
+  const readSerialData = async (port: any) => {
+    const textDecoder = new TextDecoderStream()
+    const readableStreamClosed = port.readable!.pipeTo(textDecoder.writable)
+    const reader = textDecoder.readable.getReader()
+    readerRef.current = reader
+
+    let buffer = ""
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        buffer += value
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          console.log("📡 Serial recibido:", trimmedLine)
+
+          // Detectar comando LEER del Arduino
+          if (trimmedLine === "LEER") {
+            setLastKey("🔊")
+            if (onVoiceButtonPress) {
+              onVoiceButtonPress()
+            }
+          }
+          // Detectar caracteres del teclado Braille
+          else if (trimmedLine.startsWith("Carácter detectado:")) {
+            const char = trimmedLine.split(":")[1]?.trim()
+            if (char && char !== "⠼" && char !== "⌫" && char !== "␣") {
+              // Convertir símbolo Braille a letra
+              const letter = brailleToLetter(char)
+              if (letter) {
+                setLastKey(letter)
+                setDetectedKeys((prev) => {
+                  const newKeys = [...prev, letter]
+                  if (newKeys.length > 10) {
+                    return newKeys.slice(newKeys.length - 10)
+                  }
+                  return newKeys
+                })
+                onTextInput(letter)
+                logKeyboardAction(letter, "char")
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error leyendo serial:", error)
+    }
+  }
+
+  // Convertir símbolo Braille a letra
+  const brailleToLetter = (braille: string): string | null => {
+    const brailleMap: Record<string, string> = {
+      "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f",
+      "⠛": "g", "⠓": "h", "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l",
+      "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p", "⠟": "q", "⠗": "r",
+      "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
+      "⠽": "y", "⠵": "z", " ": " ",
+    }
+    return brailleMap[braille] || null
+  }
 
   // Función para registrar una acción del teclado
   const logKeyboardAction = async (character: string, actionType: "char" | "space" | "backspace" | "openApp") => {
@@ -153,16 +278,17 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
     }
   }, [onTextInput, onVoiceButtonPress, deviceId, toast])
 
-  // Simular desconexión después de 5 segundos sin actividad
+  // Cleanup al desmontar el componente
   useEffect(() => {
-    if (isConnected) {
-      const timer = setTimeout(() => {
-        setIsConnected(false)
-      }, 5000)
-
-      return () => clearTimeout(timer)
+    return () => {
+      if (readerRef.current) {
+        readerRef.current.cancel().catch(console.error)
+      }
+      if (portRef.current) {
+        portRef.current.close().catch(console.error)
+      }
     }
-  }, [isConnected, lastKey])
+  }, [])
 
   return (
     <Card>
@@ -175,7 +301,22 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
             </CardTitle>
             <CardDescription>Conecta tu teclado Braille Arduino para escribir directamente</CardDescription>
           </div>
-          <Badge variant={isConnected ? "default" : "outline"}>{isConnected ? "Conectado" : "Desconectado"}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={isConnected ? "default" : "outline"}>{isConnected ? "Conectado" : "Desconectado"}</Badge>
+            {serialSupported && (
+              isConnected ? (
+                <Button size="sm" variant="outline" onClick={disconnectSerial}>
+                  <X className="h-4 w-4 mr-1" />
+                  Desconectar
+                </Button>
+              ) : (
+                <Button size="sm" onClick={connectSerial}>
+                  <Usb className="h-4 w-4 mr-1" />
+                  Conectar Arduino
+                </Button>
+              )
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -205,14 +346,31 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
           )}
 
           <div className="text-sm text-muted-foreground space-y-1">
-            <p className="flex items-center gap-1">
-              <Info className="h-4 w-4" />
-              Tu teclado Braille envía letras individuales que son detectadas automáticamente.
-            </p>
-            {onVoiceButtonPress && (
-              <p className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+            {serialSupported ? (
+              <>
+                <p className="flex items-center gap-1">
+                  <Info className="h-4 w-4" />
+                  {isConnected 
+                    ? "Teclado Arduino conectado por USB. Los caracteres se detectan automáticamente."
+                    : "Haz clic en 'Conectar Arduino' para usar tu teclado Braille por USB."}
+                </p>
+                {onVoiceButtonPress && isConnected && (
+                  <p className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                    <Info className="h-4 w-4" />
+                    Presiona el botón de voz físico en el Arduino para traducir y leer el resultado.
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="flex items-center gap-1">
                 <Info className="h-4 w-4" />
-                Presiona <kbd className="px-1.5 py-0.5 bg-muted border rounded text-xs font-mono">Ctrl+Shift+V</kbd> para traducir y leer el resultado.
+                Tu navegador no soporta Web Serial API. Usa Chrome, Edge o Opera para conectar el Arduino.
+              </p>
+            )}
+            {!isConnected && (
+              <p className="flex items-center gap-1 text-muted-foreground">
+                <Info className="h-4 w-4" />
+                También puedes escribir directamente con el teclado de tu computadora (modo simulación).
               </p>
             )}
           </div>
