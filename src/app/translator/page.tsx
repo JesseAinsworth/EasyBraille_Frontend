@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,6 +28,9 @@ export default function TranslatorPage() {
   const [autoVoice, setAutoVoice] = useState(true)
   const { toast } = useToast()
   const router = useRouter()
+  
+  // Ref para mantener el texto español actualizado para el botón de voz
+  const spanishTextRef = useRef("")
 
   useEffect(() => {
     // Check if user is logged in
@@ -360,6 +363,10 @@ export default function TranslatorPage() {
     const spanishChar = text.toLowerCase()
     setOutputText((prev) => prev + spanishChar)
     
+    // Actualizar el ref con el texto acumulado
+    spanishTextRef.current += spanishChar
+    console.log("📝 Texto español acumulado:", spanishTextRef.current)
+    
     // Leer automáticamente el carácter en español
     speakText(text)
   }
@@ -368,14 +375,21 @@ export default function TranslatorPage() {
     setInputText("")
     setOutputText("")
     setLastTranslationTime(null)
+    spanishTextRef.current = ""
+    console.log("🧹 Texto limpiado")
   }
 
   // Función para manejar el botón de voz del Arduino (Ctrl+Shift+V)
   const handleVoiceButton = async () => {
-    console.log("🔊 handleVoiceButton llamado", { inputText, outputText })
+    const textToRead = spanishTextRef.current
+    console.log("🔊 handleVoiceButton llamado", { 
+      inputText, 
+      outputText, 
+      spanishTextRef: textToRead 
+    })
     
     // Si no hay texto español para leer
-    if (!outputText) {
+    if (!textToRead || textToRead.trim() === "") {
       toast({
         title: "Sin texto",
         description: "No hay texto en español para leer.",
@@ -386,13 +400,13 @@ export default function TranslatorPage() {
     }
 
     try {
-      console.log("📢 Leyendo texto completo:", outputText)
+      console.log("📢 Leyendo texto completo:", textToRead)
       
       // Cancelar cualquier síntesis en curso
       window.speechSynthesis.cancel()
       
       // Leer todo el texto acumulado
-      const utterance = new SpeechSynthesisUtterance(outputText)
+      const utterance = new SpeechSynthesisUtterance(textToRead)
       utterance.lang = "es-ES"
       utterance.rate = 0.9
       utterance.volume = 1.0
@@ -400,7 +414,7 @@ export default function TranslatorPage() {
       
       toast({
         title: "🔊 Reproduciendo",
-        description: `Leyendo: "${outputText}"`,
+        description: `Leyendo: "${textToRead}"`,
         duration: 2000
       })
     } catch (error) {
