@@ -117,16 +117,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3 max-w-4xl mt-8">
-              <div className="flex flex-col items-center space-y-2 text-center p-4 bg-card rounded-lg border">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Braille className="h-6 w-6 text-blue-600" />
-                </div>
-                <h4 className="font-semibold">Traductor Offline</h4>
-                <p className="text-sm text-muted-foreground">
-                  Traduce sin conexión a internet
-                </p>
-              </div>
+            <div className="grid gap-4 md:grid-cols-2 max-w-4xl mt-8">
               <div className="flex flex-col items-center space-y-2 text-center p-4 bg-card rounded-lg border">
                 <div className="bg-purple-100 p-3 rounded-full">
                   <Smartphone className="h-6 w-6 text-purple-600" />
