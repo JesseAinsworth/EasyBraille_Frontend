@@ -121,6 +121,8 @@ export default function AdminPage() {
     model?: string
     accuracy?: number
     totalProcessed?: number
+    loss?: number
+    epochs?: number
   }>({
     status: "unknown",
     responseTime: 0,
@@ -129,6 +131,8 @@ export default function AdminPage() {
     model: "N/A",
     accuracy: 0,
     totalProcessed: 0,
+    loss: 0,
+    epochs: 0,
   })
   const router = useRouter()
   const { toast } = useToast()
@@ -600,30 +604,36 @@ export default function AdminPage() {
         const data = await healthResponse.json()
         console.log("✅ Respuesta de IA:", data)
         
-        // Intentar obtener estadísticas del modelo si están disponibles
+        // Obtener métricas de entrenamiento del modelo desde el endpoint
         let modelStats = {
-          version: data.version || "1.0",
-          model: data.model || "Braille Detection CNN",
-          accuracy: data.accuracy || 95.5, // Precisión estimada del modelo
-          totalProcessed: data.totalProcessed || 172, // Total de imágenes procesadas
+          version: data.version || data.model_version || "1.0",
+          model: data.model_name || data.model || "Braille Detection Model",
+          accuracy: data.accuracy || data.training_accuracy || data.val_accuracy || 0,
+          totalProcessed: data.total_processed || data.images_processed || 0,
+          loss: data.loss || data.training_loss || data.val_loss || 0,
+          epochs: data.epochs || data.total_epochs || 0,
         }
         
-        // Si hay endpoint de stats, intentar obtenerlo
+        // Intentar obtener métricas detalladas del entrenamiento
         try {
-          const statsResponse = await fetch(`${AI_RENDER_URL}/stats`, {
+          const statsResponse = await fetch(`${AI_RENDER_URL}/model/stats`, {
             method: 'GET',
           })
           if (statsResponse.ok) {
             const statsData = await statsResponse.json()
+            console.log("📊 Métricas de entrenamiento:", statsData)
+            
             modelStats = {
-              version: statsData.version || modelStats.version,
-              model: statsData.model || modelStats.model,
-              accuracy: statsData.accuracy || modelStats.accuracy,
-              totalProcessed: statsData.totalProcessed || modelStats.totalProcessed,
+              version: statsData.version || statsData.model_version || modelStats.version,
+              model: statsData.model_name || statsData.model_type || modelStats.model,
+              accuracy: statsData.accuracy || statsData.training_accuracy || statsData.val_accuracy || modelStats.accuracy,
+              totalProcessed: statsData.total_images || statsData.images_trained || modelStats.totalProcessed,
+              loss: statsData.loss || statsData.training_loss || statsData.val_loss || modelStats.loss,
+              epochs: statsData.epochs || statsData.current_epoch || modelStats.epochs,
             }
           }
         } catch (e) {
-          console.log("ℹ️ Endpoint /stats no disponible, usando valores predeterminados")
+          console.log("ℹ️ Endpoint /model/stats no disponible, usando valores de /health")
         }
         
         setAiRenderStatus("connected")
@@ -635,11 +645,13 @@ export default function AdminPage() {
           model: modelStats.model,
           accuracy: modelStats.accuracy,
           totalProcessed: modelStats.totalProcessed,
+          loss: modelStats.loss,
+          epochs: modelStats.epochs,
         })
         
         toast({
           title: "✅ IA Conectada",
-          description: `IA de Render respondiendo en ${responseTime}ms - Precisión: ${modelStats.accuracy}%`,
+          description: `Modelo entrenado - Precisión: ${modelStats.accuracy}% | Loss: ${modelStats.loss.toFixed(4)}`,
         })
       } else {
         throw new Error(`HTTP ${healthResponse.status}`)
@@ -656,6 +668,8 @@ export default function AdminPage() {
         model: "N/A",
         accuracy: 0,
         totalProcessed: 0,
+        loss: 0,
+        epochs: 0,
       })
       
       toast({
@@ -1337,7 +1351,7 @@ export default function AdminPage() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-xs text-muted-foreground">Precisión del Modelo</p>
+                                <p className="text-xs text-muted-foreground">Precisión</p>
                                 <h3 className="text-xl font-bold text-green-600">
                                   {aiRenderStats.accuracy ? `${aiRenderStats.accuracy}%` : "N/A"}
                                 </h3>
@@ -1353,9 +1367,9 @@ export default function AdminPage() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-xs text-muted-foreground">Imágenes Procesadas</p>
+                                <p className="text-xs text-muted-foreground">Loss</p>
                                 <h3 className="text-xl font-bold text-blue-600">
-                                  {aiRenderStats.totalProcessed || 0}
+                                  {aiRenderStats.loss ? aiRenderStats.loss.toFixed(4) : "N/A"}
                                 </h3>
                               </div>
                               <div className="p-2 bg-blue-100 rounded-full">
@@ -1369,9 +1383,9 @@ export default function AdminPage() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-xs text-muted-foreground">Modelo</p>
-                                <h3 className="text-sm font-bold text-purple-600">
-                                  {aiRenderStats.model || "CNN"}
+                                <p className="text-xs text-muted-foreground">Epochs</p>
+                                <h3 className="text-xl font-bold text-purple-600">
+                                  {aiRenderStats.epochs || "N/A"}
                                 </h3>
                               </div>
                               <div className="p-2 bg-purple-100 rounded-full">
