@@ -80,17 +80,23 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
 
       setIsConnected(true)
       toast({
-        title: "Arduino conectado",
-        description: "Teclado Braille Arduino conectado exitosamente",
+        title: "✅ Arduino conectado",
+        description: "Teclado Braille Arduino conectado por USB exitosamente",
       })
 
       // Leer datos del puerto serial
       readSerialData(port)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al conectar:", error)
+      
+      let errorMessage = "No se pudo conectar al Arduino"
+      if (error.message?.includes("Failed to open serial port")) {
+        errorMessage = "El puerto está siendo usado por otra aplicación. Cierra el Serial Monitor de Arduino IDE y vuelve a intentar."
+      }
+      
       toast({
-        title: "Error de conexión",
-        description: "No se pudo conectar al Arduino",
+        title: "❌ Error de conexión",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -355,13 +361,19 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
                 <p className="flex items-center gap-1">
                   <Info className="h-4 w-4" />
                   {isConnected 
-                    ? "Teclado Arduino conectado por USB. Los caracteres se detectan automáticamente."
-                    : "Haz clic en 'Conectar Arduino' para usar tu teclado Braille por USB."}
+                    ? "✅ Teclado Arduino conectado por USB. Los caracteres se detectan automáticamente."
+                    : "⚠️ Cierra el Serial Monitor de Arduino IDE antes de conectar."}
                 </p>
                 {onVoiceButtonPress && isConnected && (
                   <p className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                     <Info className="h-4 w-4" />
-                    Presiona el botón de voz físico en el Arduino para traducir y leer el resultado.
+                    🔊 Presiona el botón de voz físico en el Arduino para leer el resultado.
+                  </p>
+                )}
+                {onVoiceButtonPress && !isConnected && (
+                  <p className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                    <Info className="h-4 w-4" />
+                    Presiona <kbd className="px-1.5 py-0.5 bg-muted border rounded text-xs font-mono mx-1">Ctrl+Shift+V</kbd> para leer el texto (modo simulación).
                   </p>
                 )}
               </>
@@ -371,10 +383,10 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
                 Tu navegador no soporta Web Serial API. Usa Chrome, Edge o Opera para conectar el Arduino.
               </p>
             )}
-            {!isConnected && (
-              <p className="flex items-center gap-1 text-muted-foreground">
-                <Info className="h-4 w-4" />
-                También puedes escribir directamente con el teclado de tu computadora (modo simulación).
+            {!isConnected && serialSupported && (
+              <p className="flex items-center gap-1 text-muted-foreground text-xs">
+                <Info className="h-3 w-3" />
+                Modo simulación: escribe con el teclado de tu computadora.
               </p>
             )}
           </div>
