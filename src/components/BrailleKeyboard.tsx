@@ -143,6 +143,14 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
         buffer = lines.pop() || ""
 
         for (const line of lines) {
+          // Detectar espacio ANTES de trim (para no perder el espacio)
+          if (line.includes("Carácter detectado:  ")) {
+            console.log("␣ Espacio detectado")
+            setLastKey("␣")
+            onTextInput(" ")
+            continue
+          }
+          
           const trimmedLine = line.trim()
           console.log("📡 Serial recibido:", trimmedLine)
 
@@ -162,12 +170,6 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
             console.log("⌫ Backspace detectado")
             setLastKey("⌫")
             onTextInput("BACKSPACE")
-          }
-          // Detectar espacio
-          else if (trimmedLine.includes("Carácter detectado:  ") || trimmedLine === "Carácter detectado: ␣") {
-            console.log("␣ Espacio detectado")
-            setLastKey("␣")
-            onTextInput(" ")
           }
           // Detectar prefijo numérico
           else if (trimmedLine.startsWith("Carácter detectado: ⠼")) {
