@@ -7,15 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { BrailleKeyboard } from "@/components/BrailleKeyboard"
 import { BrailleKeyboardGuide } from "@/components/BrailleKeyboardGuide"
-import { Keyboard, Code, Settings, ArrowLeft, Volume2 } from "lucide-react"
+import { Keyboard, Code, Settings, ArrowLeft, Volume2, VolumeX } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 export default function BrailleKeyboardPage() {
   const [inputText, setInputText] = useState("")
   const [outputText, setOutputText] = useState("")
   const [translationDirection] = useState<"frombraille">("frombraille")
   const [keyboardConnected, setKeyboardConnected] = useState(false)
+  const [autoVoice, setAutoVoice] = useState(true)
   const { toast } = useToast()
 
   // Mapeo de letras a símbolos Braille (el teclado físico envía letras)
@@ -28,6 +31,23 @@ export default function BrailleKeyboardPage() {
     "6": "⠼⠋", "7": "⠼⠛", "8": "⠼⠓", "9": "⠼⠊", "0": "⠼⠚",
     "+": "⠐⠖", "-": "⠤", "*": "⠐⠦", "/": "⠸⠌", "=": "⠐⠶",
     ".": "⠲", ",": "⠂", "?": "⠦", "!": "⠖", "'": "⠄", '"': "⠐⠄",
+  }
+
+  const speakText = (text: string) => {
+    if (!autoVoice || !text) return
+    
+    try {
+      // Cancelar cualquier síntesis en curso
+      window.speechSynthesis.cancel()
+      
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = "es-ES"
+      utterance.rate = 0.9
+      utterance.volume = 1.0
+      window.speechSynthesis.speak(utterance)
+    } catch (error) {
+      console.error("Error al reproducir texto:", error)
+    }
   }
 
   const handleTextInput = (text: string) => {
@@ -50,6 +70,9 @@ export default function BrailleKeyboardPage() {
     
     // Para el español, el texto ya es la letra normal
     setOutputText((prev) => prev + text)
+    
+    // Leer automáticamente el carácter en español
+    speakText(text)
   }
   
   const handleVoice = () => {
@@ -155,6 +178,29 @@ export default function BrailleKeyboardPage() {
                         placeholder="braille"
                       />
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      {autoVoice ? (
+                        <Volume2 className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <VolumeX className="h-5 w-5 text-gray-400" />
+                      )}
+                      <div>
+                        <Label htmlFor="auto-voice" className="text-sm font-medium cursor-pointer">
+                          Voz automática
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Leer cada letra al escribirla
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="auto-voice"
+                      checked={autoVoice}
+                      onCheckedChange={setAutoVoice}
+                    />
                   </div>
 
                   <div className="flex justify-end gap-2">

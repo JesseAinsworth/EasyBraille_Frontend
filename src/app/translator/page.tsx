@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowDownUp, Copy, Volume2, History, Download } from "lucide-react"
+import { ArrowDownUp, Copy, Volume2, History, Download, VolumeX } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ImageCapture } from "@/components/ImageCapture"
 import { BrailleKeyboard } from "@/components/BrailleKeyboard"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { generateTranslationPDF } from "@/lib/generatorPdf"
 
@@ -23,6 +25,7 @@ export default function TranslatorPage() {
   const [user, setUser] = useState<any>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [lastTranslationTime, setLastTranslationTime] = useState<Date | null>(null)
+  const [autoVoice, setAutoVoice] = useState(true)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -321,6 +324,23 @@ export default function TranslatorPage() {
     }
   }
 
+  const speakText = (text: string) => {
+    if (!autoVoice || !text) return
+    
+    try {
+      // Cancelar cualquier síntesis en curso
+      window.speechSynthesis.cancel()
+      
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = "es-ES"
+      utterance.rate = 0.9
+      utterance.volume = 1.0
+      window.speechSynthesis.speak(utterance)
+    } catch (error) {
+      console.error("Error al reproducir texto:", error)
+    }
+  }
+
   const handleBrailleKeyInput = (text: string) => {
     console.log("📝 Texto recibido en traductor:", text)
     
@@ -335,6 +355,9 @@ export default function TranslatorPage() {
     
     const brailleChar = brailleMap[text.toLowerCase()] || text
     setInputText((prev) => prev + brailleChar)
+    
+    // Leer automáticamente el carácter en español
+    speakText(text)
   }
 
   const handleClearText = () => {
@@ -472,6 +495,29 @@ export default function TranslatorPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <BrailleKeyboard onTextInput={handleBrailleKeyInput} />
+
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  {autoVoice ? (
+                    <Volume2 className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <VolumeX className="h-5 w-5 text-gray-400" />
+                  )}
+                  <div>
+                    <Label htmlFor="auto-voice-translator" className="text-sm font-medium cursor-pointer">
+                      Voz automática
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Leer cada letra al escribirla
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="auto-voice-translator"
+                  checked={autoVoice}
+                  onCheckedChange={setAutoVoice}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 <div className="space-y-2">
