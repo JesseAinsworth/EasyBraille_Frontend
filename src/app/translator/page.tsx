@@ -26,11 +26,23 @@ export default function TranslatorPage() {
   const [lastTranslationTime, setLastTranslationTime] = useState<Date | null>(null)
   const [keyboardConnected, setKeyboardConnected] = useState(false)
   const [autoVoice, setAutoVoice] = useState(true)
+  const [activeTab, setActiveTab] = useState("keyboard") // Estado para controlar pestaña activa
 
   // 🔊 Ref para leer todo el texto español cuando Arduino mande CTRL+SHIFT+V
   const spanishTextRef = useRef("")
   const { toast } = useToast()
   const router = useRouter()
+
+  // ------------------ Detectar parámetro URL para abrir pestaña específica ------------------
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tab = params.get('tab')
+      if (tab === 'keyboard' || tab === 'text' || tab === 'image') {
+        setActiveTab(tab)
+      }
+    }
+  }, [])
 
   // ------------------ Manejar entrada del teclado Arduino ------------------
   const handleBrailleKeyInput = (text: string) => {
@@ -293,7 +305,7 @@ export default function TranslatorPage() {
     <div className="container py-8 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Traductor de Braille</h1>
 
-      <Tabs defaultValue="keyboard" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="text">Texto</TabsTrigger>
           <TabsTrigger value="image">Imagen</TabsTrigger>
