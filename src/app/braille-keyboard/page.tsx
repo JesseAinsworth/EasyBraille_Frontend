@@ -110,6 +110,8 @@ export default function BrailleKeyboardPage() {
 
   // Función para manejar el botón de voz del Arduino (Ctrl+Shift+V)
   const handleVoiceButton = () => {
+    console.log("🔊 Botón de voz presionado", { inputText, outputText })
+    
     // Si no hay texto, no hacer nada
     if (!inputText && !outputText) {
       toast({
@@ -121,18 +123,40 @@ export default function BrailleKeyboardPage() {
       return
     }
 
-    // Si ya hay output, solo leer
+    // Si hay texto en español (outputText), leerlo
     if (outputText) {
-      handleVoice()
-      return
-    }
-
-    // Si solo hay input, traducir y luego leer
-    if (inputText) {
-      // Aquí no necesitamos traducir porque inputText ya tiene Braille
-      // y outputText ya tiene el español gracias a handleTextInput
-      // Solo leemos el resultado
-      handleVoice()
+      console.log("📢 Leyendo texto:", outputText)
+      
+      try {
+        // Cancelar cualquier síntesis en curso
+        window.speechSynthesis.cancel()
+        
+        const utterance = new SpeechSynthesisUtterance(outputText)
+        utterance.lang = "es-ES"
+        utterance.rate = 0.9
+        window.speechSynthesis.speak(utterance)
+        
+        toast({
+          title: "🔊 Reproduciendo",
+          description: "Leyendo el texto en voz alta.",
+          duration: 2000
+        })
+      } catch (error) {
+        console.error("Error al leer:", error)
+        toast({
+          title: "Error",
+          description: "No se pudo reproducir el texto.",
+          variant: "destructive",
+          duration: 2000
+        })
+      }
+    } else {
+      toast({
+        title: "Sin texto",
+        description: "Escribe algo primero para poder leerlo.",
+        variant: "destructive",
+        duration: 2000
+      })
     }
   }
   

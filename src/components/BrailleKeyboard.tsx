@@ -141,9 +141,13 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
 
           // Detectar comando LEER del Arduino
           if (trimmedLine === "LEER") {
+            console.log("🔊 Comando LEER detectado!")
             setLastKey("🔊")
             if (onVoiceButtonPress) {
+              console.log("🔊 Llamando onVoiceButtonPress")
               onVoiceButtonPress()
+            } else {
+              console.warn("⚠️ onVoiceButtonPress no está definido")
             }
           }
           // Detectar caracteres del teclado Braille
