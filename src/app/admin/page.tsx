@@ -112,6 +112,16 @@ export default function AdminPage() {
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "mock">("disconnected")
   const [apiResponses, setApiResponses] = useState<Record<string, any>>({})
   const [showDebugInfo, setShowDebugInfo] = useState(false)
+  const [aiRenderStatus, setAiRenderStatus] = useState<"connected" | "disconnected" | "testing">("disconnected")
+  const [aiRenderStats, setAiRenderStats] = useState<{
+    status: string
+    responseTime: number
+    lastTested: string | null
+  }>({
+    status: "unknown",
+    responseTime: 0,
+    lastTested: null,
+  })
   const router = useRouter()
   const { toast } = useToast()
 
@@ -555,6 +565,65 @@ export default function AdminPage() {
 
   const toggleDebugInfo = () => {
     setShowDebugInfo(!showDebugInfo)
+  }
+
+  const testAIConnection = async () => {
+    try {
+      setAiRenderStatus("testing")
+      setIsLoadingData(true)
+      console.log("🧪 Probando conexión con IA de Render...")
+      
+      // URL de la IA en Render
+      const AI_RENDER_URL = "https://easybraille-api.onrender.com"
+      
+      const startTime = Date.now()
+      
+      // Probar endpoint de salud
+      const healthResponse = await fetch(`${AI_RENDER_URL}/health`, {
+        method: 'GET',
+      })
+      
+      const responseTime = Date.now() - startTime
+      
+      console.log(`📊 Response status: ${healthResponse.status}`)
+      console.log(`⏱️ Response time: ${responseTime}ms`)
+      
+      if (healthResponse.ok) {
+        const data = await healthResponse.json()
+        console.log("✅ Respuesta de IA:", data)
+        
+        setAiRenderStatus("connected")
+        setAiRenderStats({
+          status: "online",
+          responseTime: responseTime,
+          lastTested: new Date().toISOString(),
+        })
+        
+        toast({
+          title: "✅ IA Conectada",
+          description: `IA de Render respondiendo en ${responseTime}ms`,
+        })
+      } else {
+        throw new Error(`HTTP ${healthResponse.status}`)
+      }
+    } catch (error: any) {
+      console.error("❌ Error al conectar con IA:", error)
+      
+      setAiRenderStatus("disconnected")
+      setAiRenderStats({
+        status: "offline",
+        responseTime: 0,
+        lastTested: new Date().toISOString(),
+      })
+      
+      toast({
+        title: "❌ IA Desconectada",
+        description: "No se pudo conectar con la IA de Render",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingData(false)
+    }
   }
 
   // Configuraciones de gráficas - Datos mensuales
@@ -1186,6 +1255,81 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Nueva sección: IA de Procesamiento de Imágenes en Render */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">IA de Procesamiento de Imágenes (Render)</CardTitle>
+                      <CardDescription>Modelo de detección Braille desplegado en Render</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {aiRenderStatus === "connected" && (
+                        <div className="flex items-center gap-1 text-green-600">
+                          <Wifi className="h-4 w-4" />
+                          <span className="text-sm">Conectada</span>
+                        </div>
+                      )}
+                      {aiRenderStatus === "testing" && (
+                        <div className="flex items-center gap-1 text-yellow-600">
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Probando...</span>
+                        </div>
+                      )}
+                      {aiRenderStatus === "disconnected" && (
+                        <div className="flex items-center gap-1 text-red-600">
+                          <WifiOff className="h-4 w-4" />
+                          <span className="text-sm">Desconectada</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">URL del Servicio</p>
+                        <p className="text-sm font-mono">https://easybraille-api.onrender.com</p>
+                      </div>
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Estado</p>
+                        <p className="text-sm font-semibold capitalize">{aiRenderStats.status}</p>
+                      </div>
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Tiempo de Respuesta</p>
+                        <p className="text-sm font-semibold">
+                          {aiRenderStats.responseTime > 0 ? `${aiRenderStats.responseTime}ms` : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {aiRenderStats.lastTested && (
+                      <p className="text-xs text-muted-foreground">
+                        Última prueba: {new Date(aiRenderStats.lastTested).toLocaleString("es-ES")}
+                      </p>
+                    )}
+                    
+                    <Button 
+                      onClick={testAIConnection} 
+                      disabled={isLoadingData}
+                      className="w-full"
+                    >
+                      <Brain className="mr-2 h-4 w-4" />
+                      {isLoadingData ? "Probando conexión..." : "Probar Conexión con IA"}
+                    </Button>
+                    
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-sm text-blue-800">
+                        <strong>Funcionalidad:</strong> Esta IA procesa imágenes para detectar texto en Braille 
+                        utilizando visión por computadora y machine learning. El modelo está desplegado en Render 
+                        y se utiliza en la función de captura de imagen de la aplicación.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {stats.ai.totalInteractions === 0 ? (
                 // COLOR: Fondo gris para estado vacío
