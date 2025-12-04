@@ -342,25 +342,71 @@ export default function TranslatorPage() {
           <Card>
             <CardHeader>
               <CardTitle>Entrada desde teclado Arduino</CardTitle>
-              <CardDescription>Recibe Braille Unicode</CardDescription>
+              <CardDescription>Escribe con tu teclado Braille y ve la traducción en tiempo real</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
 
-              {/* Aquí capturamos texto enviado por Arduino */}
-              <BrailleKeyboard onTextInput={handleTextInput} />
-
-              <Textarea
-                placeholder="⠃⠗⠁⠊⠑⠇⠇⠑..."
-                value={inputText}
-                readOnly
-                className="min-h-[150px] text-3xl font-mono text-center"
+              {/* Componente teclado Arduino */}
+              <BrailleKeyboard 
+                onTextInput={handleBrailleKeyInput}
+                onVoiceButtonPress={handleVoiceButton}
               />
 
+              {/* Switch de voz automática */}
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <Label htmlFor="auto-voice" className="text-sm font-medium cursor-pointer">
+                      Voz automática
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Leer cada letra al escribir
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="auto-voice"
+                  checked={autoVoice}
+                  onCheckedChange={setAutoVoice}
+                />
+              </div>
+
+              {/* Dos campos: Braille y Español */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Braille</label>
+                  <Textarea
+                    placeholder="⠃⠗⠁⠊⠇⠇⠑..."
+                    value={inputText}
+                    readOnly
+                    className="min-h-[200px] text-3xl font-mono text-center"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Español</label>
+                  <Textarea
+                    placeholder="braille..."
+                    value={outputText}
+                    readOnly
+                    className="min-h-[200px] text-2xl font-mono text-center"
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-center flex-wrap gap-3">
-                <Button onClick={handleTranslate} disabled={isLoading}>Traducir</Button>
-                <Button variant="outline" onClick={handleVoice}>🔊 Leer español</Button>
-                <Button variant="outline" onClick={handleCopy}>📋 Copiar</Button>
-                <Button variant="outline" onClick={handleClearText}>🧹 Limpiar</Button>
+                <Button variant="outline" onClick={handleVoiceButton}>
+                  <Volume2 className="mr-2 h-4 w-4" />
+                  🔊 Leer español
+                </Button>
+                <Button variant="outline" onClick={handleCopy}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  📋 Copiar
+                </Button>
+                <Button variant="outline" onClick={handleClearText}>
+                  <VolumeX className="mr-2 h-4 w-4" />
+                  🧹 Limpiar
+                </Button>
               </div>
             </CardContent>
           </Card>
