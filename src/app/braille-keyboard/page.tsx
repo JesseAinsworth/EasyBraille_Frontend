@@ -147,17 +147,7 @@ export default function BrailleKeyboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <BrailleKeyboard
-                    onTextInput={handleTextInput}
-                    onBackspace={() => {
-                      setInputText((prev) => prev.slice(0, -1))
-                      setOutputText((prev) => prev.slice(0, -1))
-                    }}
-                    onSpace={() => {
-                      setInputText((prev) => prev + " ")
-                      setOutputText((prev) => prev + " ")
-                    }}
-                  />
+                  <BrailleKeyboard onTextInput={handleTextInput} />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div className="space-y-2">
