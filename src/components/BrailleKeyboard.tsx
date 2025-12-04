@@ -48,6 +48,7 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
   const [detectedKeys, setDetectedKeys] = useState<string[]>([])
   const [deviceId, setDeviceId] = useState<string>("")
   const [serialSupported, setSerialSupported] = useState(false)
+  const [numericPrefix, setNumericPrefix] = useState(false) // Para detectar modo numérico
   const portRef = useRef<any | null>(null)
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null)
   const { toast } = useToast()
@@ -159,10 +160,48 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
           // Detectar caracteres del teclado Braille
           else if (trimmedLine.startsWith("Carácter detectado:")) {
             const char = trimmedLine.split(":")[1]?.trim()
-            if (char && char !== "⠼" && char !== "⌫" && char !== "␣") {
+            if (char && char !== "⌫" && char !== "␣") {
+              console.log("🔤 Carácter detectado del Arduino:", char, "Código:", char.codePointAt(0)?.toString(16))
+              
+              // Detectar prefijo numérico
+              if (char === "⠼") {
+                console.log("🔢 Prefijo numérico detectado - siguiente carácter será número")
+                setNumericPrefix(true)
+                return
+              }
+              
+              // Si hay prefijo numérico activo, convertir el siguiente carácter a número
+              let finalChar = char
+              if (numericPrefix) {
+                console.log("🔢 Modo numérico activo, convirtiendo:", char)
+                // Mapeo de letras a números en Braille
+                const numberMap: Record<string, string> = {
+                  "⠁": "1", "⠃": "2", "⠉": "3", "⠙": "4", "⠑": "5",
+                  "⠋": "6", "⠛": "7", "⠓": "8", "⠊": "9", "⠚": "0"
+                }
+                const number = numberMap[char]
+                if (number) {
+                  console.log("✅ Número detectado:", number)
+                  setLastKey(number)
+                  setDetectedKeys((prev) => {
+                    const newKeys = [...prev, number]
+                    if (newKeys.length > 10) {
+                      return newKeys.slice(newKeys.length - 10)
+                    }
+                    return newKeys
+                  })
+                  onTextInput(number)
+                  logKeyboardAction(number, "char")
+                  setNumericPrefix(false)
+                  return
+                }
+                setNumericPrefix(false)
+              }
+              
               // Convertir símbolo Braille a letra
               const letter = brailleToLetter(char)
               if (letter) {
+                console.log("✅ Convertido a:", letter)
                 setLastKey(letter)
                 setDetectedKeys((prev) => {
                   const newKeys = [...prev, letter]
@@ -173,6 +212,8 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
                 })
                 onTextInput(letter)
                 logKeyboardAction(letter, "char")
+              } else {
+                console.warn("❌ No se pudo convertir:", char)
               }
             }
           }

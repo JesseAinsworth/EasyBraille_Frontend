@@ -361,18 +361,27 @@ export default function TranslatorPage() {
     }
     
     const lowerText = text.toLowerCase()
-    const brailleChar = brailleMap[lowerText] || brailleMap[text] // números y símbolos no se convierten a minúsculas
+    
+    // Para números y operaciones, buscar primero sin conversión a minúsculas
+    let brailleChar = brailleMap[text]
+    
+    // Si no se encuentra, intentar con minúsculas (para letras)
+    if (!brailleChar) {
+      brailleChar = brailleMap[lowerText]
+    }
     
     // Solo agregar si existe el símbolo Braille
     if (brailleChar) {
+      console.log("✅ Agregando a Braille:", brailleChar, "y a Español:", text)
+      
+      // SOLO el símbolo Braille en el campo de Braille
       setInputText((prev) => prev + brailleChar)
       
-      // Traducir automáticamente (mantener números y símbolos como están)
-      const outputChar = text
-      setOutputText((prev) => prev + outputChar)
+      // SOLO la letra/número en español en el campo de Español
+      setOutputText((prev) => prev + text)
       
       // Actualizar el ref con el texto acumulado
-      spanishTextRef.current += outputChar
+      spanishTextRef.current += text
       console.log("📝 Texto español acumulado:", spanishTextRef.current)
       
       // Leer automáticamente el carácter
