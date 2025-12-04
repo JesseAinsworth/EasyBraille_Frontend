@@ -27,10 +27,11 @@ Se ha adaptado el código de generación de PDF de la aplicación móvil Android
 - Indicación de giro de hoja para lectura en relieve
 - Título diferenciado en páginas de continuación
 
-### 5. **Formato Texto Braille Invertido**
-- El texto Braille se invierte automáticamente (como en Android)
-- Facilita la perforación correcta del papel
-- Al girar la hoja, el texto se lee correctamente
+### 5. **Formato Texto Braille**
+- El texto Braille se muestra tal cual (NO invertido)
+- Arriba: Sección de Braille con instrucciones de perforación (70% de la página)
+- Abajo: Texto en español original (30% de la página)
+- Ideal para lectura directa del Braille generado
 
 ## Diferencias con Android
 
@@ -92,15 +93,15 @@ await generateTranslationPDF({
 │  Instrucciones: Perfora...          │
 │                                     │
 │  ⠞⠑⠭⠞⠕ ⠑⠝ ⠃⠗⠁⠊⠇⠇⠑             │ ← 70%
-│  (Texto invertido)                  │   Braille
-│                                     │
+│  (Texto en Braille normal)          │   Braille
+│                                     │   ARRIBA
 │      [MARCA DE AGUA]                │
 │                                     │
 ├─────────────────────────────────────┤
 │ Texto original:                     │
 │                                     │ ← 30%
 │ texto en español...                 │   Español
-│                                     │
+│                                     │   ABAJO
 │                           Pág. 1    │
 └─────────────────────────────────────┘
 ```
@@ -112,10 +113,11 @@ await generateTranslationPDF({
 - ✅ Implementada función `addWatermark()` 
 - ✅ Layout 70/30 con bordes azules
 - ✅ Soporte multi-página automático
-- ✅ Texto Braille invertido automáticamente
+- ✅ Texto Braille normal (NO invertido) para lectura directa
 - ✅ Numeración de páginas
 - ✅ Timestamp en nombre de archivo
 - ✅ Función principal ahora es async
+- ✅ Braille arriba, Español abajo
 
 ## Testing
 

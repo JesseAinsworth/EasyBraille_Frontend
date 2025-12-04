@@ -78,15 +78,15 @@ export async function generateTranslationPDF(translation: TranslationData): Prom
       : translation.originalText
   ) || "(Vacío)"
   
-  // Revertir texto Braille (como en Android)
-  const reversedBrailleText = cleanBrailleText.split('').reverse().join('')
+  // NO revertir texto Braille - mostrarlo tal cual
+  const brailleTextToShow = cleanBrailleText
 
   let currentBrailleIndex = 0
   let currentSpanishIndex = 0
   let pageNumber = 1
 
   // Procesar múltiples páginas
-  while (currentBrailleIndex < reversedBrailleText.length || currentSpanishIndex < cleanSpanishText.length) {
+  while (currentBrailleIndex < brailleTextToShow.length || currentSpanishIndex < cleanSpanishText.length) {
     if (pageNumber > 1) {
       doc.addPage()
     }
@@ -135,9 +135,9 @@ export async function generateTranslationPDF(translation: TranslationData): Prom
     })
     currentY += (instructionLines.length * 6) + padding
     
-    // Texto Braille
+    // Texto Braille (arriba)
     const availableBrailleHeight = brailleBoxBottom - currentY - padding
-    const remainingBraille = reversedBrailleText.substring(currentBrailleIndex)
+    const remainingBraille = brailleTextToShow.substring(currentBrailleIndex)
     
     if (remainingBraille.length > 0) {
       doc.setFontSize(20)
@@ -171,7 +171,7 @@ export async function generateTranslationPDF(translation: TranslationData): Prom
     doc.text(titleText, margin + padding, currentY)
     currentY += 7
     
-    // Texto en Español
+    // Texto en Español (abajo)
     const availableSpanishHeight = spanishBoxBottom - currentY - padding
     const remainingSpanish = cleanSpanishText.substring(currentSpanishIndex)
     
