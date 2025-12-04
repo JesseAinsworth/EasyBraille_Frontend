@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, BlindsIcon as Braille, Globe, Users } from "lucide-react"
+import { ArrowRight, BlindsIcon as Braille, Globe, Users, Smartphone, Download } from "lucide-react"
 import { LogoSection } from "@/components/LogoSection"
 
 export default function Home() {
@@ -74,6 +74,75 @@ export default function Home() {
                 <h3 className="text-xl font-bold">Para Todos los Usuarios</h3>
                 <p className="text-muted-foreground">
                   Diseñado para ser utilizado por personas con y sin discapacidad visual.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sección de descarga de la aplicación móvil */}
+      <section className="py-12 md:py-24 bg-gradient-to-b from-muted to-background">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center space-y-8">
+            <div className="space-y-4 text-center">
+              <div className="inline-flex items-center justify-center">
+                <div className="bg-primary/10 p-4 rounded-full">
+                  <Smartphone className="h-12 w-12 text-primary" />
+                </div>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Descarga nuestra App Móvil
+              </h2>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                Lleva EasyBraille contigo a donde vayas. Nuestra aplicación móvil está disponible para Android
+                con todas las funcionalidades del traductor en la palma de tu mano.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <a 
+                href="#" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <Button size="lg" className="gap-2 bg-green-600 hover:bg-green-700">
+                  <Download className="h-5 w-5" />
+                  Descargar para Android
+                </Button>
+              </a>
+              <p className="text-sm text-muted-foreground">
+                Versión 1.0 - Compatible con Android 8.0+
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3 max-w-4xl mt-8">
+              <div className="flex flex-col items-center space-y-2 text-center p-4 bg-card rounded-lg border">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Braille className="h-6 w-6 text-blue-600" />
+                </div>
+                <h4 className="font-semibold">Traductor Offline</h4>
+                <p className="text-sm text-muted-foreground">
+                  Traduce sin conexión a internet
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-2 text-center p-4 bg-card rounded-lg border">
+                <div className="bg-purple-100 p-3 rounded-full">
+                  <Smartphone className="h-6 w-6 text-purple-600" />
+                </div>
+                <h4 className="font-semibold">Interfaz Optimizada</h4>
+                <p className="text-sm text-muted-foreground">
+                  Diseñada para uso móvil
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-2 text-center p-4 bg-card rounded-lg border">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <Download className="h-6 w-6 text-green-600" />
+                </div>
+                <h4 className="font-semibold">Descarga Gratuita</h4>
+                <p className="text-sm text-muted-foreground">
+                  100% gratis, sin anuncios
                 </p>
               </div>
             </div>
