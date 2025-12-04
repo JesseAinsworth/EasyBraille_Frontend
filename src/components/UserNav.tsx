@@ -39,7 +39,7 @@ export function UserNav() {
       logout()
       
       toast({
-        title: "Sesión cerrada",
+        title: "👋 Sesión cerrada",
         description: "Has cerrado sesión exitosamente. ¡Hasta pronto!",
         type: "success",
         duration: 3000
@@ -53,7 +53,7 @@ export function UserNav() {
       logout()
       
       toast({
-        title: "Sesión cerrada",
+        title: "ℹ️ Sesión cerrada",
         description: "Tu sesión ha sido cerrada localmente.",
         type: "info",
         duration: 3000

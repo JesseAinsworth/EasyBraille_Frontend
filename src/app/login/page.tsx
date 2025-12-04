@@ -70,7 +70,7 @@ export default function LoginPage() {
       login(userToStore, data.token || "")
 
       toast({
-        title: "¡Bienvenido de nuevo!",
+        title: "✅ ¡Bienvenido de nuevo!",
         description: `Hola ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu sesión ha iniciado correctamente.`,
         type: "success",
         duration: 4000
@@ -117,7 +117,7 @@ export default function LoginPage() {
       }
 
       toast({
-        title: errorTitle,
+        title: `❌ ${errorTitle}`,
         description: errorMessage,
         type: "error",
         duration: 6000

@@ -130,7 +130,12 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
         setIsCameraActive(true)
       }
     } catch {
-      toast({ title: "Error de cámara", description: "No se pudo acceder a la cámara.", variant: "destructive" })
+      toast({ 
+        title: "❌ Error de cámara", 
+        description: "No se pudo acceder a la cámara. Verifica los permisos del navegador.", 
+        variant: "destructive",
+        duration: 5000 
+      })
     }
   }
 
@@ -187,7 +192,11 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
         // 🤖 Llamar directamente a la API de IA (sin proxy para evitar timeout de Amplify)
         const aiApiUrl = process.env.NEXT_PUBLIC_AI_API_URL || "https://easybraille-api.onrender.com"
         
-        toast({ title: "Procesando", description: "Mejorando imagen y enviando a la IA..." })
+        toast({ 
+          title: "🔍 Procesando imagen", 
+          description: "Mejorando calidad y enviando a la IA para detección de Braille...",
+          duration: 3000 
+        })
         
         const response = await fetch(`${aiApiUrl}/predict`, { 
           method: "POST", 
@@ -209,7 +218,11 @@ export function ImageCapture({ onTextDetected }: ImageCaptureProps) {
         
         setDetectedText(detectedBrailleText)
         onTextDetected(detectedBrailleText)
-        toast({ title: "Imagen procesada", description: "Texto detectado exitosamente." })
+        toast({ 
+          title: "✅ Imagen procesada", 
+          description: "Texto en Braille detectado y traducido exitosamente.",
+          duration: 4000 
+        })
       }
       reader.readAsDataURL(file)
     } catch (error) {

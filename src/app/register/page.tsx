@@ -28,7 +28,7 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "Las contraseñas no coinciden",
+        title: "⚠️ Las contraseñas no coinciden",
         description: "Por favor, asegúrate de que ambas contraseñas sean idénticas.",
         type: "error",
         duration: 5000
@@ -82,8 +82,8 @@ export default function RegisterPage() {
       login(userToStore, data.token || "")
 
       toast({
-        title: "¡Cuenta creada exitosamente!",
-        description: `Hola ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu cuenta ha sido creada. Redirigiendo...`,
+        title: "🎉 ¡Cuenta creada exitosamente!",
+        description: `Bienvenido ${data.user?.name || data.user?.email?.split("@")[0] || "Usuario"}, tu cuenta ha sido creada. Redirigiendo al traductor...`,
         type: "success",
         duration: 4000
       })
@@ -118,7 +118,7 @@ export default function RegisterPage() {
       }
       
       toast({
-        title: errorTitle,
+        title: `❌ ${errorTitle}`,
         description: errorMessage,
         type: "error",
         duration: 6000

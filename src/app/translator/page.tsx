@@ -239,9 +239,10 @@ export default function TranslatorPage() {
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       toast({
-        title: "Texto vacío",
-        description: "No hay texto en español para traducir.",
+        title: "⚠️ Texto vacío",
+        description: "Ingresa texto en español para traducir a Braille.",
         variant: "destructive",
+        duration: 3000
       })
       return
     }
@@ -281,13 +282,15 @@ export default function TranslatorPage() {
 
       toast({
         title: "✅ Traducción completada",
-        description: isLoggedIn ? "Guardada en tu historial." : "Proceso finalizado.",
+        description: isLoggedIn ? "Tu traducción ha sido guardada en el historial." : "Traducción finalizada. Inicia sesión para guardar tu historial.",
+        duration: 4000
       })
     } catch (err: any) {
       toast({
-        title: "Error",
-        description: "Ocurrió un error al traducir.",
+        title: "❌ Error de traducción",
+        description: err?.message || "Ocurrió un error al procesar la traducción. Por favor, intenta nuevamente.",
         variant: "destructive",
+        duration: 5000
       })
     } finally {
       setIsLoading(false)
@@ -330,13 +333,22 @@ export default function TranslatorPage() {
   const handleCopy = async () => {
     if (!outputText) return
     await navigator.clipboard.writeText(outputText)
-    toast({ title: "Copiado ✅", description: "Texto Braille copiado." })
+    toast({ 
+      title: "📋 Copiado al portapapeles", 
+      description: "El texto en Braille ha sido copiado exitosamente.",
+      duration: 3000 
+    })
   }
 
   // ------------------ Descargar PDF ------------------
   const handleDownloadPDF = async () => {
     if (!inputText.trim() || !outputText.trim()) {
-      toast({ title: "Error", description: "Primero traduce el texto.", variant: "destructive"})
+      toast({ 
+        title: "⚠️ No hay contenido para descargar", 
+        description: "Primero realiza una traducción antes de descargar el PDF.", 
+        variant: "destructive",
+        duration: 4000
+      })
       return
     }
 
