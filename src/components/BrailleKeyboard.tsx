@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 
 interface BrailleKeyboardProps {
   onTextInput: (text: string) => void
+  onVoiceButtonPress?: () => void
 }
 
 // Mapeo de teclas a códigos Braille (simplificado)
@@ -40,7 +41,7 @@ const keyToBrailleCode: Record<string, string> = {
   z: "101011",
 }
 
-export function BrailleKeyboard({ onTextInput }: BrailleKeyboardProps) {
+export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyboardProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [lastKey, setLastKey] = useState<string | null>(null)
   const [detectedKeys, setDetectedKeys] = useState<string[]>([])
@@ -88,6 +89,23 @@ export function BrailleKeyboard({ onTextInput }: BrailleKeyboardProps) {
   useEffect(() => {
     // Función para manejar eventos de teclado
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Detectar combinación Ctrl+Shift+V para simular botón de voz
+      if (event.ctrlKey && event.shiftKey && event.key === 'V') {
+        event.preventDefault()
+        event.stopPropagation()
+        
+        if (onVoiceButtonPress) {
+          onVoiceButtonPress()
+          setLastKey("🔊")
+          toast({
+            title: "Botón de voz activado",
+            description: "Traduciendo y leyendo resultado...",
+            duration: 2000,
+          })
+        }
+        return
+      }
+      
       // Detectar solo letras individuales (sin necesidad de Ctrl+Alt)
       if (event.key.length === 1 && /[a-z]/.test(event.key)) {
         // Prevenir procesamiento múltiple
@@ -133,7 +151,7 @@ export function BrailleKeyboard({ onTextInput }: BrailleKeyboardProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true })
     }
-  }, [onTextInput, deviceId])
+  }, [onTextInput, onVoiceButtonPress, deviceId, toast])
 
   // Simular desconexión después de 5 segundos sin actividad
   useEffect(() => {
@@ -186,11 +204,17 @@ export function BrailleKeyboard({ onTextInput }: BrailleKeyboardProps) {
             </div>
           )}
 
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground space-y-1">
             <p className="flex items-center gap-1">
               <Info className="h-4 w-4" />
               Tu teclado Braille envía letras individuales que son detectadas automáticamente.
             </p>
+            {onVoiceButtonPress && (
+              <p className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                <Info className="h-4 w-4" />
+                Presiona <kbd className="px-1.5 py-0.5 bg-muted border rounded text-xs font-mono">Ctrl+Shift+V</kbd> para traducir y leer el resultado.
+              </p>
+            )}
           </div>
         </div>
       </CardContent>

@@ -366,6 +366,36 @@ export default function TranslatorPage() {
     setLastTranslationTime(null)
   }
 
+  // Función para manejar el botón de voz del Arduino (Ctrl+Shift+V)
+  const handleVoiceButton = async () => {
+    // Si no hay texto, no hacer nada
+    if (!inputText) {
+      toast({
+        title: "Sin texto",
+        description: "No hay texto para traducir.",
+        variant: "destructive",
+        duration: 2000
+      })
+      return
+    }
+
+    // Si no hay traducción, traducir primero
+    if (!outputText) {
+      await handleTranslate()
+      // Esperar un poco para que se complete la traducción
+      setTimeout(() => {
+        if (translationDirection === "frombraille") {
+          handleTextToSpeech()
+        }
+      }, 500)
+    } else {
+      // Si ya hay traducción, solo leer
+      if (translationDirection === "frombraille") {
+        handleTextToSpeech()
+      }
+    }
+  }
+
   return (
     <div className="container py-8 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Traductor de Braille</h1>
@@ -494,7 +524,10 @@ export default function TranslatorPage() {
               <CardDescription>Utiliza el teclado virtual para escribir en Braille</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <BrailleKeyboard onTextInput={handleBrailleKeyInput} />
+              <BrailleKeyboard 
+                onTextInput={handleBrailleKeyInput}
+                onVoiceButtonPress={handleVoiceButton}
+              />
 
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">

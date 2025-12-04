@@ -107,6 +107,34 @@ export default function BrailleKeyboardPage() {
       })
     }
   }
+
+  // Función para manejar el botón de voz del Arduino (Ctrl+Shift+V)
+  const handleVoiceButton = () => {
+    // Si no hay texto, no hacer nada
+    if (!inputText && !outputText) {
+      toast({
+        title: "Sin texto",
+        description: "No hay texto para traducir.",
+        variant: "destructive",
+        duration: 2000
+      })
+      return
+    }
+
+    // Si ya hay output, solo leer
+    if (outputText) {
+      handleVoice()
+      return
+    }
+
+    // Si solo hay input, traducir y luego leer
+    if (inputText) {
+      // Aquí no necesitamos traducir porque inputText ya tiene Braille
+      // y outputText ya tiene el español gracias a handleTextInput
+      // Solo leemos el resultado
+      handleVoice()
+    }
+  }
   
   const handleClear = () => {
     setInputText("")
@@ -157,7 +185,10 @@ export default function BrailleKeyboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <BrailleKeyboard onTextInput={handleTextInput} />
+                  <BrailleKeyboard 
+                    onTextInput={handleTextInput}
+                    onVoiceButtonPress={handleVoiceButton}
+                  />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div className="space-y-2">
