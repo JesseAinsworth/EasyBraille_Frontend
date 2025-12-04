@@ -356,6 +356,10 @@ export default function TranslatorPage() {
     const brailleChar = brailleMap[text.toLowerCase()] || text
     setInputText((prev) => prev + brailleChar)
     
+    // Traducir automáticamente a español
+    const spanishChar = text.toLowerCase()
+    setOutputText((prev) => prev + spanishChar)
+    
     // Leer automáticamente el carácter en español
     speakText(text)
   }
@@ -370,11 +374,11 @@ export default function TranslatorPage() {
   const handleVoiceButton = async () => {
     console.log("🔊 handleVoiceButton llamado", { inputText, outputText })
     
-    // Si no hay texto, no hacer nada
-    if (!inputText) {
+    // Si no hay texto español para leer
+    if (!outputText) {
       toast({
         title: "Sin texto",
-        description: "No hay texto para traducir.",
+        description: "No hay texto en español para leer.",
         variant: "destructive",
         duration: 2000
       })
@@ -382,27 +386,28 @@ export default function TranslatorPage() {
     }
 
     try {
-      // Siempre traducir primero
-      console.log("🔄 Traduciendo texto...")
-      await handleTranslate()
+      console.log("📢 Leyendo texto completo:", outputText)
       
-      // Esperar un poco para que se complete la traducción
-      setTimeout(() => {
-        console.log("📢 Intentando leer resultado...")
-        if (translationDirection === "frombraille") {
-          handleTextToSpeech()
-        } else {
-          toast({
-            title: "Traducción completada",
-            description: "El texto ha sido traducido a Braille",
-          })
-        }
-      }, 1000)
+      // Cancelar cualquier síntesis en curso
+      window.speechSynthesis.cancel()
+      
+      // Leer todo el texto acumulado
+      const utterance = new SpeechSynthesisUtterance(outputText)
+      utterance.lang = "es-ES"
+      utterance.rate = 0.9
+      utterance.volume = 1.0
+      window.speechSynthesis.speak(utterance)
+      
+      toast({
+        title: "🔊 Reproduciendo",
+        description: `Leyendo: "${outputText}"`,
+        duration: 2000
+      })
     } catch (error) {
       console.error("Error en handleVoiceButton:", error)
       toast({
         title: "Error",
-        description: "No se pudo procesar la solicitud",
+        description: "No se pudo reproducir el texto",
         variant: "destructive",
       })
     }
