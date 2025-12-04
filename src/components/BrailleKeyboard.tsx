@@ -90,6 +90,10 @@ export function BrailleKeyboard({ onTextInput }: BrailleKeyboardProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Detectar solo letras individuales (sin necesidad de Ctrl+Alt)
       if (event.key.length === 1 && /[a-z]/.test(event.key)) {
+        // Prevenir procesamiento múltiple
+        event.preventDefault()
+        event.stopPropagation()
+        
         const key = event.key.toLowerCase()
         setLastKey(key)
 
@@ -122,12 +126,12 @@ export function BrailleKeyboard({ onTextInput }: BrailleKeyboardProps) {
       }
     }
 
-    // Agregar el event listener
-    window.addEventListener("keydown", handleKeyDown)
+    // Agregar el event listener con capture para interceptar primero
+    window.addEventListener("keydown", handleKeyDown, { capture: true })
 
     // Limpiar el event listener cuando el componente se desmonte
     return () => {
-      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keydown", handleKeyDown, { capture: true })
     }
   }, [onTextInput, deviceId])
 

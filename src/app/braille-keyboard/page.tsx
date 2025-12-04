@@ -44,25 +44,12 @@ export default function BrailleKeyboardPage() {
       })
     }
     
-    // El componente BrailleKeyboard ya envía símbolos Braille
-    // Solo agregamos el texto directamente
-    setInputText((prev) => prev + text)
+    // Convertir letras a símbolos Braille
+    const brailleChar = letterToBraille[text.toLowerCase()] || text
+    setInputText((prev) => prev + brailleChar)
     
-    // Para el español, necesitamos convertir de Braille a español
-    const spanishMap: { [key: string]: string } = {
-      "⠁": "a", "⠃": "b", "⠉": "c", "⠙": "d", "⠑": "e", "⠋": "f", "⠛": "g", "⠓": "h",
-      "⠊": "i", "⠚": "j", "⠅": "k", "⠇": "l", "⠍": "m", "⠝": "n", "⠕": "o", "⠏": "p",
-      "⠟": "q", "⠗": "r", "⠎": "s", "⠞": "t", "⠥": "u", "⠧": "v", "⠺": "w", "⠭": "x",
-      "⠽": "y", "⠵": "z", " ": " ",
-      "⠼⠁": "1", "⠼⠃": "2", "⠼⠉": "3", "⠼⠙": "4", "⠼⠑": "5",
-      "⠼⠋": "6", "⠼⠛": "7", "⠼⠓": "8", "⠼⠊": "9", "⠼⠚": "0",
-      "⠐⠖": "+", "⠤": "-", "⠐⠦": "*", "⠸⠌": "/", "⠐⠶": "=",
-      "⠲": ".", "⠂": ",", "⠦": "?", "⠖": "!", "⠄": "'", "⠐⠄": '"',
-    }
-    
-    const spanishChar = spanishMap[text] || text
-    console.log("🟡 Convertido a español:", spanishChar)
-    setOutputText((prev) => prev + spanishChar)
+    // Para el español, el texto ya es la letra normal
+    setOutputText((prev) => prev + text)
   }
   
   const handleVoice = () => {

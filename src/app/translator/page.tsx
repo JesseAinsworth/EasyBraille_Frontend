@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowDownUp, Copy, Volume2, History, KeyboardIcon, Download } from "lucide-react"
+import { ArrowDownUp, Copy, Volume2, History, Download } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ImageCapture } from "@/components/ImageCapture"
 import { BrailleKeyboard } from "@/components/BrailleKeyboard"
@@ -21,7 +21,6 @@ export default function TranslatorPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [showBrailleKeyboard, setShowBrailleKeyboard] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [lastTranslationTime, setLastTranslationTime] = useState<Date | null>(null)
   const { toast } = useToast()
@@ -325,9 +324,17 @@ export default function TranslatorPage() {
   const handleBrailleKeyInput = (text: string) => {
     console.log("📝 Texto recibido en traductor:", text)
     
-    // El componente BrailleKeyboard ya envía símbolos Braille
-    // Solo agregamos el texto directamente
-    setInputText((prev) => prev + text)
+    // Convertir letras a símbolos Braille
+    const brailleMap: { [key: string]: string } = {
+      a: "⠁", b: "⠃", c: "⠉", d: "⠙", e: "⠑", f: "⠋",
+      g: "⠛", h: "⠓", i: "⠊", j: "⠚", k: "⠅", l: "⠇",
+      m: "⠍", n: "⠝", o: "⠕", p: "⠏", q: "⠟", r: "⠗",
+      s: "⠎", t: "⠞", u: "⠥", v: "⠧", w: "⠺", x: "⠭",
+      y: "⠽", z: "⠵", " ": " ",
+    }
+    
+    const brailleChar = brailleMap[text.toLowerCase()] || text
+    setInputText((prev) => prev + brailleChar)
   }
 
   const handleClearText = () => {
@@ -416,10 +423,6 @@ export default function TranslatorPage() {
                   <Volume2 className="mr-2 h-4 w-4" />
                   Leer en voz alta
                 </Button>
-                <Button variant="outline" onClick={() => setShowBrailleKeyboard(!showBrailleKeyboard)}>
-                  <KeyboardIcon className="mr-2 h-4 w-4" />
-                  {showBrailleKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
-                </Button>
                 <Button variant="outline" onClick={handleClearText} disabled={!inputText && !outputText}>
                   Limpiar
                 </Button>
@@ -430,12 +433,6 @@ export default function TranslatorPage() {
                   </Button>
                 )}
               </div>
-
-                  {showBrailleKeyboard && (
-                <div className="mt-4">
-                  <BrailleKeyboard onTextInput={handleBrailleKeyInput} />
-                </div>
-              )}
 
               {!isLoggedIn && (
                 <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
