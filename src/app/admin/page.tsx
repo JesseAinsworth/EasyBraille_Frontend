@@ -138,23 +138,29 @@ export default function AdminPage() {
   // Función para cargar datos con manejo de errores mejorado
   const loadDataSafely = useCallback(async (url: string) => {
     try {
-      console.log(`
-🔄 Cargando datos de: ${url}
-;`)
+      console.log(`🔄 Cargando datos de: ${url}`)
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://easybraillebackend-production.up.railway.app"
       const fullUrl = url.startsWith("/api/") ? `${API_URL}${url}` : url
+      
+      console.log(`📡 URL completa: ${fullUrl}`)
+      
       const response = await fetch(fullUrl, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
       })
+      
+      console.log(`📊 Response status: ${response.status}`)
+      
       if (!response.ok) {
         console.warn(`❌ Error ${response.status} al cargar ${url}`)
         throw new Error(`HTTP ${response.status}`)
       }
+      
       const data = await response.json()
       console.log(`✅ Datos cargados exitosamente de ${url}:`, data)
+      
       // Guardar respuesta para debug
       setApiResponses((prev) => ({
         ...prev,
@@ -164,9 +170,11 @@ export default function AdminPage() {
           status: response.status,
         },
       }))
+      
       return { success: true, data, isMockData: data.isMockData || false }
     } catch (error: any) {
       console.error(`❌ Error al cargar ${url}:`, error)
+      
       // Guardar error para debug
       setApiResponses((prev) => ({
         ...prev,
@@ -176,6 +184,7 @@ export default function AdminPage() {
           status: "error",
         },
       }))
+      
       return { success: false, error, isMockData: true }
     }
   }, [])
@@ -268,33 +277,22 @@ export default function AdminPage() {
         usersLast6Months,
       })
       setConnectionStatus("connected")
+      toast({
+        title: "Datos actualizados",
+        description: "Estadísticas cargadas correctamente del servidor",
+      })
       return false // No es mock data
     } else {
       console.warn("⚠️ No se pudieron cargar estadísticas reales")
-      setConnectionStatus("mock")
-      // Resetear a ceros si no hay datos
-      setStats({
-        users: { total: 0, active: 0, admins: 0, regular: 0, last6Months: [] },
-        translations: {
-          total: 0,
-          thisWeek: 0,
-          byType: { spanish_to_braille: 0, braille_to_spanish: 0 },
-          last6Months: [],
-        },
-        ai: {
-          totalInteractions: 0,
-          avgAccuracy: 0,
-          avgResponseTime: 0,
-          successRate: 0,
-        },
-      })
+      setConnectionStatus("disconnected")
+      // Mantener datos anteriores si los hay, no resetear a cero
       return true // Es mock data (o sin datos)
     }
   }, [loadDataSafely])
 
   // Función memoizada para cargar todos los datos
-  const loadAllData = useCallback(async () => {
-    if (hasLoadedData) return
+  const loadAllData = useCallback(async (forceReload = false) => {
+    if (hasLoadedData && !forceReload) return
     setIsLoadingData(true)
     console.log("🚀 Iniciando carga de datos del panel...")
     try {
@@ -502,7 +500,57 @@ export default function AdminPage() {
 
   const refreshData = async () => {
     setHasLoadedData(false)
-    await loadAllData()
+    await loadAllData(true) // Forzar recarga
+  }
+
+  const testConnection = async () => {
+    try {
+      setIsLoadingData(true)
+      console.log("🧪 Probando conexión con el backend...")
+      
+      const response = await fetch("/api/admin/test-connection")
+      const data = await response.json()
+      
+      console.log("📊 Resultado de prueba:", data)
+      
+      // Mostrar resultados en toast
+      const workingEndpoints = data.results?.filter((r: any) => r.ok).length || 0
+      const totalEndpoints = data.results?.length || 0
+      
+      if (workingEndpoints === totalEndpoints) {
+        toast({
+          title: "✅ Conexión exitosa",
+          description: `Todos los endpoints (${workingEndpoints}/${totalEndpoints}) están funcionando`,
+        })
+      } else if (workingEndpoints > 0) {
+        toast({
+          title: "⚠️ Conexión parcial",
+          description: `Solo ${workingEndpoints}/${totalEndpoints} endpoints funcionando`,
+          variant: "default",
+        })
+      } else {
+        toast({
+          title: "❌ Sin conexión",
+          description: "Ningún endpoint está respondiendo",
+          variant: "destructive",
+        })
+      }
+      
+      // Guardar resultados para debug
+      setApiResponses((prev) => ({
+        ...prev,
+        "test-connection": data,
+      }))
+    } catch (error: any) {
+      console.error("❌ Error al probar conexión:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo probar la conexión",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingData(false)
+    }
   }
 
   const toggleDebugInfo = () => {
@@ -626,6 +674,10 @@ export default function AdminPage() {
           </div>
         </div>
 <div className="flex gap-2">
+  <Button variant="outline" onClick={testConnection} disabled={isLoadingData}>
+    <Bug className="mr-2 h-4 w-4" />
+    Probar Conexión
+  </Button>
   <Button variant="outline" onClick={refreshData} disabled={isLoadingData}>
     <RefreshCw className={`mr-2 h-4 w-4 ${isLoadingData ? "animate-spin" : ""}`} />
     {isLoadingData ? "Actualizando..." : "Actualizar"}
