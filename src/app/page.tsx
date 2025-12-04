@@ -102,7 +102,7 @@ export default function Home() {
             
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <a 
-                href="https://github.com/JesseAinsworth/EasyBraille_App/releases/tag/APK" 
+                href="https://github.com/JesseAinsworth/EasyBraille_App/releases/download/APK/app-release.zip" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-block"
