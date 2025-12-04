@@ -222,6 +222,14 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
   }
 
   useEffect(() => {
+    // Solo usar el listener del teclado si NO está conectado el Arduino
+    if (isConnected && portRef.current) {
+      console.log("🔌 Arduino conectado - deshabilitando listener de teclado PC")
+      return
+    }
+
+    console.log("⌨️ Modo simulación - habilitando listener de teclado PC")
+    
     // Función para manejar eventos de teclado
     const handleKeyDown = (event: KeyboardEvent) => {
       // Detectar combinación Ctrl+Shift+V para simular botón de voz
@@ -230,6 +238,7 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
         event.stopPropagation()
         
         if (onVoiceButtonPress) {
+          console.log("🔊 Ctrl+Shift+V presionado - llamando onVoiceButtonPress")
           onVoiceButtonPress()
           setLastKey("🔊")
           toast({
@@ -265,9 +274,6 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
 
         // Registrar la acción del teclado
         logKeyboardAction(key, "char")
-
-        // Marcar como conectado cuando se detecta una tecla
-        setIsConnected(true)
       } else if (event.key === "Backspace") {
         // Manejar la tecla de retroceso
         setLastKey("⌫")
@@ -286,7 +292,7 @@ export function BrailleKeyboard({ onTextInput, onVoiceButtonPress }: BrailleKeyb
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true })
     }
-  }, [onTextInput, onVoiceButtonPress, deviceId, toast])
+  }, [onTextInput, onVoiceButtonPress, deviceId, toast, isConnected])
 
   // Cleanup al desmontar el componente
   useEffect(() => {

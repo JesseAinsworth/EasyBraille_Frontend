@@ -368,6 +368,8 @@ export default function TranslatorPage() {
 
   // Función para manejar el botón de voz del Arduino (Ctrl+Shift+V)
   const handleVoiceButton = async () => {
+    console.log("🔊 handleVoiceButton llamado", { inputText, outputText })
+    
     // Si no hay texto, no hacer nada
     if (!inputText) {
       toast({
@@ -379,20 +381,30 @@ export default function TranslatorPage() {
       return
     }
 
-    // Si no hay traducción, traducir primero
-    if (!outputText) {
+    try {
+      // Siempre traducir primero
+      console.log("🔄 Traduciendo texto...")
       await handleTranslate()
+      
       // Esperar un poco para que se complete la traducción
       setTimeout(() => {
+        console.log("📢 Intentando leer resultado...")
         if (translationDirection === "frombraille") {
           handleTextToSpeech()
+        } else {
+          toast({
+            title: "Traducción completada",
+            description: "El texto ha sido traducido a Braille",
+          })
         }
-      }, 500)
-    } else {
-      // Si ya hay traducción, solo leer
-      if (translationDirection === "frombraille") {
-        handleTextToSpeech()
-      }
+      }, 1000)
+    } catch (error) {
+      console.error("Error en handleVoiceButton:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo procesar la solicitud",
+        variant: "destructive",
+      })
     }
   }
 
