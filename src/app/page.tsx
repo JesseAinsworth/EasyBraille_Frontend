@@ -102,9 +102,8 @@ export default function Home() {
             
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <a 
-                href="https://github.com/JesseAinsworth/EasyBraille_App/releases/download/APK/app-release.zip" 
-                target="_blank" 
-                rel="noopener noreferrer"
+                href="/downloads/app-release.apk" 
+                download
                 className="inline-block"
               >
                 <Button size="lg" className="gap-2 bg-green-600 hover:bg-green-700">
