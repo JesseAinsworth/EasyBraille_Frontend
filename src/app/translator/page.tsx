@@ -433,11 +433,7 @@ export default function TranslatorPage() {
 
                   {showBrailleKeyboard && (
                 <div className="mt-4">
-                  <BrailleKeyboard
-                    onTextInput={handleBrailleKeyInput}
-                    onBackspace={() => setInputText((prev) => prev.slice(0, -1))}
-                    onSpace={() => setInputText((prev) => prev + " ")}
-                  />
+                  <BrailleKeyboard onTextInput={handleBrailleKeyInput} />
                 </div>
               )}
 
@@ -478,11 +474,7 @@ export default function TranslatorPage() {
               <CardDescription>Utiliza el teclado virtual para escribir en Braille</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <BrailleKeyboard
-                onTextInput={handleBrailleKeyInput}
-                onBackspace={() => setInputText((prev) => prev.slice(0, -1))}
-                onSpace={() => setInputText((prev) => prev + " ")}
-              />
+              <BrailleKeyboard onTextInput={handleBrailleKeyInput} />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 <div className="space-y-2">
