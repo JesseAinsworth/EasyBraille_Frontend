@@ -149,12 +149,12 @@ export default function TranslatorPage() {
     }
   }, [])
 
-  // ------------------ Traducir Braille → Español (cuando usuario lo haga) ------------------
+  // ------------------ Traducir Español → Braille (cuando usuario lo haga) ------------------
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       toast({
         title: "Texto vacío",
-        description: "No hay texto en Braille para traducir.",
+        description: "No hay texto en español para traducir.",
         variant: "destructive",
       })
       return
@@ -164,25 +164,29 @@ export default function TranslatorPage() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Mapa de Braille → Español
-      const brailleToSpanish: Record<string, string> = {
-        "⠁": "a","⠃":"b","⠉":"c","⠙":"d","⠑":"e","⠋":"f",
-        "⠛":"g","⠓":"h","⠊":"i","⠚":"j","⠅":"k","⠇":"l",
-        "⠍":"m","⠝":"n","⠕":"o","⠏":"p","⠟":"q","⠗":"r",
-        "⠎":"s","⠞":"t","⠥":"u","⠧":"v","⠺":"w","⠭":"x",
-        "⠽":"y","⠵":"z","⠷":"á","⠮":"é","⠌":"í","⠬":"ó",
-        "⠾":"ú","⠻":"ñ","⠲":".","⠂":",","⠦":"?","⠖":"!",
-        " ":" "
+      // Mapa de Español → Braille
+      const spanishToBraille: Record<string, string> = {
+        "a": "⠁", "b": "⠃", "c": "⠉", "d": "⠙", "e": "⠑", "f": "⠋",
+        "g": "⠛", "h": "⠓", "i": "⠊", "j": "⠚", "k": "⠅", "l": "⠇",
+        "m": "⠍", "n": "⠝", "o": "⠕", "p": "⠏", "q": "⠟", "r": "⠗",
+        "s": "⠎", "t": "⠞", "u": "⠥", "v": "⠧", "w": "⠺", "x": "⠭",
+        "y": "⠽", "z": "⠵",
+        "1": "⠼⠁", "2": "⠼⠃", "3": "⠼⠉", "4": "⠼⠙", "5": "⠼⠑",
+        "6": "⠼⠋", "7": "⠼⠛", "8": "⠼⠓", "9": "⠼⠊", "0": "⠼⠚",
+        "+": "⠐⠖", "-": "⠤", "*": "⠐⠦", "/": "⠸⠌", "=": "⠐⠶",
+        "á": "⠷", "é": "⠮", "í": "⠌", "ó": "⠬", "ú": "⠾",
+        "ñ": "⠻", ".": "⠲", ",": "⠂", "?": "⠦", "!": "⠖",
+        " ": " "
       }
 
       const translated = inputText
+        .toLowerCase()
         .split("")
-        .map((c) => brailleToSpanish[c] ?? c)
+        .map((c) => spanishToBraille[c] ?? c)
         .join("")
 
       setOutputText(translated)
-      spanishTextRef.current = translated
-      spanishTextRef.current && (spanishTextRef.current += "")
+      spanishTextRef.current = inputText.trim()
       setLastTranslationTime(new Date())
 
       if (isLoggedIn && user) {
@@ -227,11 +231,11 @@ export default function TranslatorPage() {
     } catch {}
   }
 
-  // ------------------ Copiar resultado Español ------------------
+  // ------------------ Copiar resultado Braille ------------------
   const handleCopy = async () => {
     if (!outputText) return
     await navigator.clipboard.writeText(outputText)
-    toast({ title: "Copiado ✅", description: "Texto español copiado." })
+    toast({ title: "Copiado ✅", description: "Texto Braille copiado." })
   }
 
   // ------------------ Descargar PDF ------------------
@@ -316,21 +320,35 @@ export default function TranslatorPage() {
         <TabsContent value="text">
           <Card>
             <CardHeader>
-              <CardTitle>Braille a Español</CardTitle>
-              <CardDescription>Escribe o pega texto en Braille</CardDescription>
+              <CardTitle>Español a Braille</CardTitle>
+              <CardDescription>Escribe o pega texto en español para convertir a Braille</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Textarea
-                placeholder="⠓⠕⠇⠁..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                className="min-h-[200px] text-2xl font-mono"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Español</label>
+                  <Textarea
+                    placeholder="hola mundo..."
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    className="min-h-[200px] text-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Braille</label>
+                  <Textarea
+                    placeholder="⠓⠕⠇⠁..."
+                    value={outputText}
+                    readOnly
+                    className="min-h-[200px] text-3xl font-mono text-center"
+                  />
+                </div>
+              </div>
 
               <div className="flex justify-center flex-wrap gap-3">
                 <Button onClick={handleTranslate} disabled={isLoading}>Traducir</Button>
                 <Button variant="outline" onClick={handleVoice}><Volume2 className="mr-2"/>Leer español</Button>
-                <Button variant="outline" onClick={handleCopy}><Copy className="mr-2"/>Copiar</Button>
+                <Button variant="outline" onClick={handleCopy}><Copy className="mr-2"/>Copiar Braille</Button>
                 <Button variant="outline" onClick={handleDownloadPDF}><Download className="mr-2"/>PDF</Button>
                 <Button variant="outline" onClick={handleClearText}><VolumeX className="mr-2"/>Limpiar</Button>
               </div>
