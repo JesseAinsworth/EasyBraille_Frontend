@@ -48,6 +48,24 @@ export default function TranslatorPage() {
   const handleBrailleKeyInput = (text: string) => {
     console.log("📝 Texto recibido en traductor:", text)
     
+    // Manejar BACKSPACE
+    if (text === "BACKSPACE") {
+      console.log("⌫ Procesando backspace")
+      setInputText((prev) => prev.slice(0, -1))
+      setOutputText((prev) => prev.slice(0, -1))
+      spanishTextRef.current = spanishTextRef.current.slice(0, -1)
+      return
+    }
+    
+    // Manejar ESPACIO
+    if (text === " ") {
+      console.log("␣ Procesando espacio")
+      setInputText((prev) => prev + " ")
+      setOutputText((prev) => prev + " ")
+      spanishTextRef.current += " "
+      return
+    }
+    
     const brailleMap: { [key: string]: string } = {
       a: "⠁", b: "⠃", c: "⠉", d: "⠙", e: "⠑", f: "⠋",
       g: "⠛", h: "⠓", i: "⠊", j: "⠚", k: "⠅", l: "⠇",
