@@ -230,6 +230,7 @@ export function BrailleKeyboard({
         onBackspace?.()
         addSymbolToUI("⌫")
         leerEnVoz("Borrar")
+        return
       }
 
       if (e.key === " ") {
@@ -238,6 +239,17 @@ export function BrailleKeyboard({
         onTextInput(" ")
         addSymbolToUI("␣")
         leerEnVoz("Espacio")
+        return
+      }
+
+      // ==== Convertir letras normales a Braille ====
+      if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
+        const char = e.key.toLowerCase()
+        const braille = keyToBraille[char] ?? char
+        textoBrailleRef.current += braille
+        onTextInput(braille)
+        addSymbolToUI(braille)
+        return
       }
     };
 
