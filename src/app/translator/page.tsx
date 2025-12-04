@@ -347,28 +347,39 @@ export default function TranslatorPage() {
   const handleBrailleKeyInput = (text: string) => {
     console.log("📝 Texto recibido en traductor:", text)
     
-    // Convertir letras a símbolos Braille
+    // Convertir letras y números a símbolos Braille
     const brailleMap: { [key: string]: string } = {
       a: "⠁", b: "⠃", c: "⠉", d: "⠙", e: "⠑", f: "⠋",
       g: "⠛", h: "⠓", i: "⠊", j: "⠚", k: "⠅", l: "⠇",
       m: "⠍", n: "⠝", o: "⠕", p: "⠏", q: "⠟", r: "⠗",
       s: "⠎", t: "⠞", u: "⠥", v: "⠧", w: "⠺", x: "⠭",
-      y: "⠽", z: "⠵", " ": " ",
+      y: "⠽", z: "⠵",
+      "1": "⠼⠁", "2": "⠼⠃", "3": "⠼⠉", "4": "⠼⠙", "5": "⠼⠑",
+      "6": "⠼⠋", "7": "⠼⠛", "8": "⠼⠓", "9": "⠼⠊", "0": "⠼⠚",
+      "+": "⠐⠖", "-": "⠤", "*": "⠐⠦", "/": "⠸⠌", "=": "⠐⠶",
+      " ": " ",
     }
     
-    const brailleChar = brailleMap[text.toLowerCase()] || text
-    setInputText((prev) => prev + brailleChar)
+    const lowerText = text.toLowerCase()
+    const brailleChar = brailleMap[lowerText] || brailleMap[text] // números y símbolos no se convierten a minúsculas
     
-    // Traducir automáticamente a español
-    const spanishChar = text.toLowerCase()
-    setOutputText((prev) => prev + spanishChar)
-    
-    // Actualizar el ref con el texto acumulado
-    spanishTextRef.current += spanishChar
-    console.log("📝 Texto español acumulado:", spanishTextRef.current)
-    
-    // Leer automáticamente el carácter en español
-    speakText(text)
+    // Solo agregar si existe el símbolo Braille
+    if (brailleChar) {
+      setInputText((prev) => prev + brailleChar)
+      
+      // Traducir automáticamente (mantener números y símbolos como están)
+      const outputChar = text
+      setOutputText((prev) => prev + outputChar)
+      
+      // Actualizar el ref con el texto acumulado
+      spanishTextRef.current += outputChar
+      console.log("📝 Texto español acumulado:", spanishTextRef.current)
+      
+      // Leer automáticamente el carácter
+      speakText(text)
+    } else {
+      console.warn("⚠️ Carácter no soportado:", text)
+    }
   }
 
   const handleClearText = () => {
