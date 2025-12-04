@@ -189,9 +189,12 @@ export function BrailleKeyboard({ onTextInput, onBackspace, onSpace }: BrailleKe
         logAction(" ","space")
       } else if (e.key.length === 1) {
         const char = e.key.toLowerCase()
-        addSymbol(char)
+        const brailleChar = keyToBraille[char] ?? char
+        textRef.current += char
+        setLastSymbol(brailleChar)
+        addSymbol(brailleChar)
         logAction(char,"char")
-        onTextInput(keyToBraille[char] ?? char)
+        onTextInput(brailleChar)
       } else if (e.key === "Enter") {
         speakBuffer()
       }
