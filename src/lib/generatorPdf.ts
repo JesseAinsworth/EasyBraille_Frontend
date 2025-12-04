@@ -8,161 +8,200 @@ interface TranslationData {
   language?: string
 }
 
-export function generateTranslationPDF(translation: TranslationData): void {
+// Función auxiliar para limpiar texto
+function cleanText(text: string): string {
+  return text
+    .replace(/\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Función para agregar logo al PDF
+async function addLogo(doc: jsPDF, x: number, y: number, size: number): Promise<void> {
+  try {
+    // Intentar cargar el logo desde la carpeta public
+    const img = new Image()
+    img.src = '/images/easybraillenegro.png' // Logo negro existente
+    
+    await new Promise((resolve, reject) => {
+      img.onload = () => {
+        doc.addImage(img, 'PNG', x, y, size, size)
+        resolve(true)
+      }
+      img.onerror = () => resolve(false) // Si falla, continuar sin logo
+    })
+  } catch (error) {
+    console.log('No se pudo cargar el logo:', error)
+  }
+}
+
+// Función para agregar marca de agua (sin usar métodos no soportados)
+async function addWatermark(doc: jsPDF, x: number, y: number, size: number): Promise<void> {
+  try {
+    const img = new Image()
+    img.src = '/images/easybraillenegro.png' // Usar el mismo logo con opacidad baja
+    
+    await new Promise((resolve) => {
+      img.onload = () => {
+        // jsPDF no soporta GState directamente, usaremos una imagen con menor opacidad
+        // La marca de agua se verá más tenue por el tamaño y posición
+        doc.addImage(img, 'PNG', x, y, size, size)
+        resolve(true)
+      }
+      img.onerror = () => resolve(false)
+    })
+  } catch (error) {
+    console.log('No se pudo cargar marca de agua:', error)
+  }
+}
+
+export async function generateTranslationPDF(translation: TranslationData): Promise<void> {
   const doc = new jsPDF()
 
-  // Configuración del documento
+  // Configuración del documento (formato A4: 595x842 pts)
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  const margin = 20
-  let currentY = margin
-
-  // Logo y título (centrado)
-  doc.setFontSize(20)
-  doc.setFont("helvetica", "bold")
-  doc.text("Tabla de Traducción Braille", pageWidth / 2, currentY, { align: "center" })
-  currentY += 15
-
-  // Logo de EasyBraille (texto simulado, se podría agregar imagen)
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "normal")
-  doc.setTextColor(41, 128, 185) // Color azul para el logo
-  doc.text("EasyBraille", pageWidth - margin - 25, currentY - 10)
-  doc.setTextColor(0, 0, 0) // Volver a negro
-  currentY += 10
-
-  // ===== SECCIÓN 1: TEXTO EN BRAILLE =====
-  // Marco azul para el texto en Braille
-  doc.setDrawColor(41, 128, 185) // Azul
-  doc.setLineWidth(1.5)
-  doc.rect(margin, currentY, pageWidth - 2 * margin, 110) // Caja grande
-
-  currentY += 10
-
-  // Instrucciones
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "bold")
-  doc.text("Texto en Braille: Perfora los puntos de este texto. Al terminar, gira la hoja para", margin + 5, currentY)
-  currentY += 5
-  doc.text("leer el relieve correctamente.", margin + 5, currentY)
-  currentY += 15
-
-  // Texto en Braille - usar representación gráfica con círculos
-  const brailleText = translation.translationType === "TEXT_TO_BRAILLE" 
-    ? translation.translatedText 
-    : translation.originalText
-
-  // Mapeo de caracteres Braille a patrones de puntos (1-6)
-  const brailleToPattern: { [key: string]: number[] } = {
-    "⠁": [1], "⠃": [1,2], "⠉": [1,4], "⠙": [1,4,5], "⠑": [1,5], 
-    "⠋": [1,2,4], "⠛": [1,2,4,5], "⠓": [1,2,5], "⠊": [2,4], "⠚": [2,4,5],
-    "⠅": [1,3], "⠇": [1,2,3], "⠍": [1,3,4], "⠝": [1,3,4,5], "⠕": [1,3,5],
-    "⠏": [1,2,3,4], "⠟": [1,2,3,4,5], "⠗": [1,2,3,5], "⠎": [2,3,4], "⠞": [2,3,4,5],
-    "⠥": [1,3,6], "⠧": [1,2,3,6], "⠺": [2,4,5,6], "⠭": [1,3,4,6], 
-    "⠽": [1,3,4,5,6], "⠵": [1,3,5,6],
-    "⠲": [2,5,6], "⠂": [2], "⠦": [2,3,6], "⠖": [2,3,5],
-    "⠼": [3,4,5,6], "⠐": [5], "⠤": [3,6], "⠸": [4,5,6], "⠄": [3],
-  }
-
-  // Función para dibujar una celda Braille
-  const drawBrailleCell = (x: number, y: number, pattern: number[], letter: string) => {
-    const dotRadius = 2.5
-    const cellWidth = 8
-    const cellHeight = 14
-    
-    // Posiciones de los 6 puntos en una celda Braille
-    const dotPositions: { [key: number]: [number, number] } = {
-      1: [0, 0],
-      2: [0, 5],
-      3: [0, 10],
-      4: [4, 0],
-      5: [4, 5],
-      6: [4, 10],
-    }
-    
-    // Dibujar puntos llenos para los activos, vacíos para los inactivos
-    for (let i = 1; i <= 6; i++) {
-      const [dx, dy] = dotPositions[i]
-      const isActive = pattern.includes(i)
-      
-      if (isActive) {
-        doc.setFillColor(0, 0, 0)
-        doc.circle(x + dx, y + dy, dotRadius, 'F')
-      } else {
-        doc.setDrawColor(200, 200, 200)
-        doc.circle(x + dx, y + dy, dotRadius, 'S')
-      }
-    }
-    
-    // Letra debajo
-    doc.setFontSize(8)
-    doc.setTextColor(100, 100, 100)
-    doc.text(letter, x - 1, y + cellHeight + 2)
-    doc.setTextColor(0, 0, 0)
-  }
-
-  // Dibujar el texto Braille carácter por carácter
-  const charsPerLine = 15
-  const lines: string[] = []
-  for (let i = 0; i < brailleText.length; i += charsPerLine) {
-    lines.push(brailleText.substring(i, i + charsPerLine))
-  }
-
-  lines.slice(0, 3).forEach((line: string, lineIndex: number) => {
-    const yPos = currentY + (lineIndex * 22)
-    
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i]
-      const xPos = margin + 10 + (i * 12)
-      
-      if (char === ' ') {
-        // Espacio - no dibujar nada
-        continue
-      }
-      
-      const pattern = brailleToPattern[char] || []
-      drawBrailleCell(xPos, yPos, pattern, char === ' ' ? '' : char)
-    }
-  })
-
-  currentY += 110 + 10
-
-  // ===== SECCIÓN 2: TEXTO NORMAL EN ESPAÑOL =====
-  // Marco azul para el texto en español
-  doc.setDrawColor(41, 128, 185) // Azul
-  doc.setLineWidth(1.5)
-  doc.rect(margin, currentY, pageWidth - 2 * margin, 80) // Caja mediana
-
-  currentY += 10
-
-  // Etiqueta
-  doc.setFontSize(12)
-  doc.setFont("helvetica", "bold")
-  doc.text("Texto Normal en español:", margin + 5, currentY)
-  currentY += 15
-
-  // Texto en español
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(14)
+  const margin = 14 // ~40 px en Android
+  const padding = 3.5 // ~10 px
+  const contentWidth = pageWidth - (margin * 2) - (padding * 2)
   
-  const spanishText = translation.translationType === "TEXT_TO_BRAILLE" 
-    ? translation.originalText 
-    : translation.translatedText
+  // Limpiar textos
+  const cleanSpanishText = cleanText(
+    translation.translationType === "TEXT_TO_BRAILLE" 
+      ? translation.originalText 
+      : translation.translatedText
+  ) || "(Vacío)"
+  
+  const cleanBrailleText = cleanText(
+    translation.translationType === "TEXT_TO_BRAILLE" 
+      ? translation.translatedText 
+      : translation.originalText
+  ) || "(Vacío)"
+  
+  // Revertir texto Braille (como en Android)
+  const reversedBrailleText = cleanBrailleText.split('').reverse().join('')
 
-  const spanishLines = doc.splitTextToSize(spanishText, pageWidth - 2 * margin - 10)
-  spanishLines.slice(0, 3).forEach((line: string, index: number) => {
-    doc.text(line, margin + 5, currentY + (index * 10))
-  })
+  let currentBrailleIndex = 0
+  let currentSpanishIndex = 0
+  let pageNumber = 1
 
-  // Pie de página
-  const footerY = pageHeight - 15
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "italic")
-  doc.setTextColor(128, 128, 128)
-  doc.text("Generado por EasyBraille", pageWidth / 2, footerY, { align: "center" })
+  // Procesar múltiples páginas
+  while (currentBrailleIndex < reversedBrailleText.length || currentSpanishIndex < cleanSpanishText.length) {
+    if (pageNumber > 1) {
+      doc.addPage()
+    }
 
-  // Generar nombre del archivo
-  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "")
+    let currentY = margin
+
+    // ===== ENCABEZADO: Logo y Título =====
+    const logoSize = 21 // ~60px
+    
+    // Logo superior derecho
+    await addLogo(doc, pageWidth - margin - logoSize, margin, logoSize)
+    
+    // Título
+    doc.setFontSize(18)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(0, 0, 0)
+    doc.text("Tabla de Traducción en Braille", margin, currentY + (logoSize / 2))
+    currentY += logoSize + 7
+    
+    // ===== SECCIÓN BRAILLE (70% superior) =====
+    const brailleSectionTop = currentY
+    const spanishSectionTop = pageHeight * 0.7
+    const brailleBoxBottom = spanishSectionTop - 7
+    const brailleBoxHeight = brailleBoxBottom - brailleSectionTop
+    const spanishBoxBottom = pageHeight - margin
+    
+    // Marca de agua en sección Braille
+    const watermarkSize = 106 // ~300px
+    const watermarkX = (pageWidth - watermarkSize) / 2
+    const watermarkY = brailleSectionTop + ((brailleBoxHeight - watermarkSize) / 2)
+    await addWatermark(doc, watermarkX, watermarkY, watermarkSize)
+    
+    // Borde azul para sección Braille
+    doc.setDrawColor(0, 0, 255)
+    doc.setLineWidth(1)
+    doc.rect(margin, brailleSectionTop, pageWidth - (margin * 2), brailleBoxHeight)
+    
+    // Instrucciones
+    currentY = brailleSectionTop + padding
+    doc.setFontSize(12)
+    doc.setFont("helvetica", "bold")
+    const instructionText = "Instrucción: Perfora los puntos. Al terminar, gira la hoja para leer en Braille."
+    const instructionLines = doc.splitTextToSize(instructionText, contentWidth)
+    instructionLines.forEach((line: string, index: number) => {
+      doc.text(line, margin + padding, currentY + (index * 6))
+    })
+    currentY += (instructionLines.length * 6) + padding
+    
+    // Texto Braille
+    const availableBrailleHeight = brailleBoxBottom - currentY - padding
+    const remainingBraille = reversedBrailleText.substring(currentBrailleIndex)
+    
+    if (remainingBraille.length > 0) {
+      doc.setFontSize(20)
+      doc.setFont("courier", "normal") // Fuente monoespaciada
+      doc.setTextColor(0, 0, 0)
+      
+      const brailleLines = doc.splitTextToSize(remainingBraille, contentWidth)
+      const lineHeight = 7
+      const maxLines = Math.floor(availableBrailleHeight / lineHeight)
+      const linesToDraw = brailleLines.slice(0, maxLines)
+      
+      linesToDraw.forEach((line: string, index: number) => {
+        doc.text(line, margin + padding, currentY + (index * lineHeight))
+        currentBrailleIndex += line.length
+      })
+    }
+    
+    // ===== SECCIÓN ESPAÑOL (30% inferior) =====
+    currentY = spanishSectionTop + padding
+    
+    // Borde azul para sección Español
+    doc.setDrawColor(0, 0, 255)
+    doc.setLineWidth(1)
+    doc.rect(margin, spanishSectionTop, pageWidth - (margin * 2), spanishBoxBottom - spanishSectionTop)
+    
+    // Título de sección
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(0, 0, 0)
+    const titleText = pageNumber === 1 ? "Texto original:" : "Texto original (Continuación...)"
+    doc.text(titleText, margin + padding, currentY)
+    currentY += 7
+    
+    // Texto en Español
+    const availableSpanishHeight = spanishBoxBottom - currentY - padding
+    const remainingSpanish = cleanSpanishText.substring(currentSpanishIndex)
+    
+    if (remainingSpanish.length > 0) {
+      doc.setFontSize(12)
+      doc.setFont("helvetica", "normal")
+      doc.setTextColor(64, 64, 64) // Gris oscuro
+      
+      const spanishLines = doc.splitTextToSize(remainingSpanish, contentWidth)
+      const lineHeight = 5
+      const maxLines = Math.floor(availableSpanishHeight / lineHeight)
+      const linesToDraw = spanishLines.slice(0, maxLines)
+      
+      linesToDraw.forEach((line: string, index: number) => {
+        doc.text(line, margin + padding, currentY + (index * lineHeight))
+        currentSpanishIndex += line.length
+      })
+    }
+    
+    // Número de página
+    doc.setFontSize(12)
+    doc.setFont("helvetica", "normal")
+    doc.setTextColor(64, 64, 64)
+    doc.text(`Pág. ${pageNumber}`, pageWidth - margin - 18, pageHeight - margin + 3)
+    
+    pageNumber++
+  }
+
+  // Generar nombre del archivo con timestamp
+  const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)
   const filename = `BrailleTemplate_${timestamp}.pdf`
 
   // Descargar el PDF

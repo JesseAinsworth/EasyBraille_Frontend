@@ -334,13 +334,13 @@ export default function TranslatorPage() {
   }
 
   // ------------------ Descargar PDF ------------------
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!inputText.trim() || !outputText.trim()) {
       toast({ title: "Error", description: "Primero traduce el texto.", variant: "destructive"})
       return
     }
 
-    generateTranslationPDF({
+    await generateTranslationPDF({
       originalText: inputText,
       translatedText: outputText,
       translationType: "BRAILLE_TO_TEXT",
