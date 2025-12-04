@@ -27,9 +27,11 @@ export default function TranslatorPage() {
   const [keyboardConnected, setKeyboardConnected] = useState(false)
   const [autoVoice, setAutoVoice] = useState(true)
   const [activeTab, setActiveTab] = useState("keyboard") // Estado para controlar pestaña activa
+  const [lastInputTime, setLastInputTime] = useState<Date | null>(null)
 
   // 🔊 Ref para leer todo el texto español cuando Arduino mande CTRL+SHIFT+V
   const spanishTextRef = useRef("")
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -43,6 +45,26 @@ export default function TranslatorPage() {
       }
     }
   }, [])
+
+  // ------------------ Auto-guardar desde teclado Braille después de 5s de inactividad ------------------
+  useEffect(() => {
+    // Solo aplicar en la pestaña de teclado Braille
+    if (activeTab !== 'keyboard') return
+    if (!isLoggedIn || !user) return
+    if (!inputText.trim() || !outputText.trim()) return
+
+    const timer = setTimeout(async () => {
+      console.log("💾 Auto-guardando traducción del teclado Braille...")
+      await saveTranslationToDatabase(inputText, outputText, "BRAILLE_TO_TEXT")
+      toast({
+        title: "💾 Guardado automático",
+        description: "Tu traducción se guardó en el historial",
+        duration: 2000
+      })
+    }, 5000) // 5 segundos
+
+    return () => clearTimeout(timer)
+  }, [inputText, outputText, activeTab, isLoggedIn, user])
 
   // ------------------ Manejar entrada del teclado Arduino ------------------
   const handleBrailleKeyInput = (text: string) => {
@@ -149,11 +171,57 @@ export default function TranslatorPage() {
     setInputText("")
     setOutputText("")
     spanishTextRef.current = ""
+    setLastInputTime(null)
+    
+    // Cancelar guardado pendiente
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = null
+    }
+    
     toast({
       title: "Texto limpiado",
       description: "Los campos han sido limpiados",
     })
   }
+
+  // ------------------ Guardar automáticamente después de 5 segundos ------------------
+  useEffect(() => {
+    // Solo en pestaña de teclado Braille
+    if (activeTab !== "keyboard") return
+    
+    // Solo si hay texto y usuario logueado
+    if (!inputText.trim() || !outputText.trim() || !isLoggedIn) return
+    
+    // Cancelar timeout anterior
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    
+    // Configurar nuevo timeout de 5 segundos
+    saveTimeoutRef.current = setTimeout(async () => {
+      console.log("💾 Guardando traducción automáticamente...")
+      
+      try {
+        await saveTranslationToDatabase(inputText, outputText, "BRAILLE_TO_TEXT")
+        
+        toast({
+          title: "💾 Guardado automático",
+          description: "Traducción guardada en tu historial",
+          duration: 2000,
+        })
+      } catch (error) {
+        console.error("Error al guardar:", error)
+      }
+    }, 5000)
+    
+    // Limpiar timeout al desmontar
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [inputText, outputText, activeTab, isLoggedIn])
 
   // ------------------ Verificar si usuario está logueado ------------------
   useEffect(() => {
@@ -208,7 +276,7 @@ export default function TranslatorPage() {
       setLastTranslationTime(new Date())
 
       if (isLoggedIn && user) {
-        await saveTranslationToDatabase(inputText, translated)
+        await saveTranslationToDatabase(inputText, translated, "TEXT_TO_BRAILLE")
       }
 
       toast({
@@ -227,24 +295,33 @@ export default function TranslatorPage() {
   }
 
   // ---------------- Guardar traducción en BD ------------------
-  const saveTranslationToDatabase = async (originalBraille: string, translatedSpanish: string) => {
+  const saveTranslationToDatabase = async (originalText: string, translatedText: string, type: "TEXT_TO_BRAILLE" | "BRAILLE_TO_TEXT") => {
     try {
       const storedUser = localStorage.getItem("user")
       if (!storedUser) throw new Error("Usuario no autenticado")
       const userId = JSON.parse(storedUser).userId
       if (!userId) throw new Error("ID no encontrado")
 
+      // Determinar qué campo va en qué lugar según el tipo
+      const payload = type === "TEXT_TO_BRAILLE" ? {
+        userId,
+        originalText: originalText.trim(),      // Texto en español
+        brailleText: translatedText.trim(),     // Texto en Braille
+        translationType: "TEXT_TO_BRAILLE",
+        language: "es"
+      } : {
+        userId,
+        originalText: translatedText.trim(),    // Texto en español (resultado)
+        brailleText: originalText.trim(),       // Texto en Braille (original)
+        translationType: "BRAILLE_TO_TEXT",
+        language: "es"
+      }
+
       await fetch(`${BACKEND_URL}/api/translations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          userId,
-          originalText: originalBraille.trim(),
-          brailleText: translatedSpanish.trim(),
-          translationType: "BRAILLE_TO_TEXT",
-          language: "es"
-        })
+        body: JSON.stringify(payload)
       })
     } catch {}
   }
