@@ -24,7 +24,9 @@ export default function BrailleKeyboardPage() {
 
   // ------------------ 🔊 Leer texto en español (si existe) ------------------
   const handleVoice = () => {
-    if (!outputText.trim()) {
+    const textToRead = textBufferRef.current || outputText
+    
+    if (!textToRead.trim()) {
       toast({
         title: "Sin texto",
         description: "No hay texto en español para leer.",
@@ -36,10 +38,16 @@ export default function BrailleKeyboardPage() {
 
     try {
       window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(outputText)
+      const utterance = new SpeechSynthesisUtterance(textToRead)
       utterance.lang = "es-ES"
       utterance.rate = 0.9
       window.speechSynthesis.speak(utterance)
+      
+      toast({
+        title: "🔊 Leyendo texto",
+        description: `Leyendo: ${textToRead}`,
+        duration: 2000
+      })
     } catch (error) {
       console.error("Error de voz:", error)
     }
@@ -49,7 +57,18 @@ export default function BrailleKeyboardPage() {
   const handleTextInput = (text: string) => {
     console.log("🟢 Texto recibido:", text)
 
-    const braille = text.trim() // ✅ asumimos que Arduino ya manda unicode Braille
+    // Convertir letras y números a símbolos Braille
+    const brailleMap: { [key: string]: string } = {
+      a: "⠁", b: "⠃", c: "⠉", d: "⠙", e: "⠑", f: "⠋",
+      g: "⠛", h: "⠓", i: "⠊", j: "⠚", k: "⠅", l: "⠇",
+      m: "⠍", n: "⠝", o: "⠕", p: "⠏", q: "⠟", r: "⠗",
+      s: "⠎", t: "⠞", u: "⠥", v: "⠧", w: "⠺", x: "⠭",
+      y: "⠽", z: "⠵",
+      "1": "⠼⠁", "2": "⠼⠃", "3": "⠼⠉", "4": "⠼⠙", "5": "⠼⠑",
+      "6": "⠼⠋", "7": "⠼⠛", "8": "⠼⠓", "9": "⠼⠊", "0": "⠼⠚",
+      "+": "⠐⠖", "-": "⠤", "*": "⠐⠦", "/": "⠸⠌", "=": "⠐⠶",
+      " ": " ",
+    }
 
     if (!keyboardConnected) {
       setKeyboardConnected(true)
@@ -60,12 +79,42 @@ export default function BrailleKeyboardPage() {
       })
     }
 
-    // ✅ acumular Braille real en el Textarea
-    setInputText(prev => prev + braille)
+    const lowerText = text.toLowerCase()
+    let brailleChar = brailleMap[text]
+    if (!brailleChar) {
+      brailleChar = brailleMap[lowerText]
+    }
 
-    // ✅ enviar Braille tal cual a la app / backend
-    textBufferRef.current += braille
-    logAction(braille, "braille")
+    // Solo agregar si existe el símbolo Braille
+    if (brailleChar) {
+      console.log("✅ Agregando a Braille:", brailleChar, "y a Español:", text)
+      
+      // Campo Braille muestra SOLO símbolos Braille
+      setInputText(prev => prev + brailleChar)
+      
+      // Campo Español muestra SOLO letras/números
+      setOutputText(prev => prev + text)
+      
+      textBufferRef.current += text
+      logAction(text, "char")
+      
+      // Leer automáticamente si está activado
+      if (autoVoice) {
+        speakText(text)
+      }
+    } else {
+      console.warn("⚠️ Carácter no soportado:", text)
+    }
+  }
+
+  // Función para leer texto individual
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = "es-ES"
+    utterance.rate = 0.9
+    window.speechSynthesis.speak(utterance)
   }
 
   const logAction = (value: string, type: string) => {
@@ -93,20 +142,15 @@ export default function BrailleKeyboardPage() {
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && (e.key === "V" || e.key === "v")) {
+        e.preventDefault()
         console.log("🔊 Botón de voz activado desde Arduino")
-        if (textBufferRef.current) {
-          toast({
-            title: "🔊 Leer texto",
-            description: "Botón de voz presionado desde el teclado físico.",
-            duration: 2000
-          })
-        }
+        handleVoice()
       }
     }
 
     window.addEventListener("keydown", listener)
     return () => window.removeEventListener("keydown", listener)
-  }, [])
+  }, [textBufferRef.current])
 
   // ------------------ UI ------------------
   return (
