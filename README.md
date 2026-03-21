@@ -1,10 +1,10 @@
-# 🎯 EasyBraille Frontend
+EasyBraille Frontend
 
-> **Estado**: ✅ **Listo para Producción** - Configurado para despliegue con backend en Railway
+> **Estado**:**Listo para Producción** - Configurado para despliegue con backend en Railway
 
 Una aplicación web moderna basada en React para educación y traducción braille, construida con Next.js 14, TypeScript y Tailwind CSS.
 
-## 🌟 Características
+## Características
 
 - **Traducción Braille**: Convierte texto a braille y viceversa
 - **Teclado Braille Interactivo**: Aprende braille de forma práctica
@@ -14,7 +14,7 @@ Una aplicación web moderna basada en React para educación y traducción braill
 - **Diseño Responsivo**: Optimizado para todos los tamaños de dispositivo
 - **Accesibilidad Primero**: Compatible con lectores de pantalla
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Estilos**: Tailwind CSS con componentes personalizados
@@ -25,12 +25,12 @@ Una aplicación web moderna basada en React para educación y traducción braill
 - **Iconos**: Lucide React
 - **Backend**: Railway Production (`https://easybraillebackend-production.up.railway.app`)
 
-## 🚀 Configuración para Producción
+##  Configuración para Producción
 
-### ⚠️ Importante: Estado del Backend
+###  Importante: Estado del Backend
 El backend está configurado para usar Railway, pero actualmente parece estar inactivo. Verifica el estado en: `https://easybraillebackend-production.up.railway.app`
 
-### 🔧 Variables de Entorno
+###  Variables de Entorno
 
 1. **Copia el archivo de ejemplo**:
 ```bash
@@ -46,7 +46,7 @@ JWT_SECRET=tu-secreto-jwt-super-seguro
 MONGODB_URI=tu-conexion-mongodb
 ```
 
-### 🏃‍♂️ Inicio Rápido
+### Inicio Rápido
 
 1. **Clona el repositorio**:
 ```bash
